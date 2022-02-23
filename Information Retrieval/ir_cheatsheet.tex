@@ -1,0 +1,1462 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts, enumitem, float, sectsty, xcolor, graphicx, tikz}
+\usetikzlibrary{arrows}
+\usepackage[colorlinks = true,
+            linkcolor = blue,
+            urlcolor  = blue,
+            citecolor = blue,
+            anchorcolor = blue]{}
+
+\definecolor{title}{RGB}{255, 70, 19}
+\sectionfont{\color{title}}
+\subsectionfont{\color{title}}
+\subsubsectionfont{\color{title}}
+
+\title{Information Retrieval - Notes}
+\author{Matteo Alberici}
+\date{September - December 2021}
+
+\begin{document}
+
+\maketitle
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+% ----------------------- %
+% Chapter 1: Introduction
+% ----------------------- %
+\section{Introduction}
+\textbf{Information retrieval} (\textbf{IR}) systems are used to harness big text data, which differs into three groups:
+\begin{itemize}
+    \item \textbf{Structured data}: specified type of data (excel file: name, age, date …)
+    \item \textbf{Semi-structured data}: partially specified type of data (email: fields and body)
+    \item \textbf{Unstructured data}: all types of data without a specified structure (book pages) \\
+\end{itemize}
+With \textbf{text retrieval}, it is possible to obtain small and relevant data from big text data, and with \textbf{text mining}, the small data received leads to knowledge.
+\subsection{Text Information System}
+\textbf{Text Information system} (\textbf{TIS}) involves three capabilities:
+\begin{enumerate}
+    \item \textbf{Text retrieval}: “\textit{information retrieval is a field concerned with the structure, analysis, organization, storage, searching, and retrieval of information.}” (Gerard Salton, 1968)
+    \item \textbf{Text analysis}: analyze a large amount of data to discover interesting patterns buried in the text
+    \item \textbf{Text organization}: annotate a collection of documents with meaningful topical structures so that scattered information can be connected and navigated \\
+\end{enumerate}
+\subsection{Database vs. IR Systems}
+Since databases records are made of well-defined semantics fields, it is easier to compare data than in IR system, in which it is not that easy to compare query text to a document, since having matching words is definitely not enough. 
+\textbf{Relevance} represents a big issue in IR since many factors could determine what is relevant and what is not, such as the style, the novelty, the context. \\
+\subsection{Natural Language Processing}
+\textbf{Natural language Processing} (\textbf{NLP}) is concerned with techniques for enabling computers to understand the meaning of natural language text.
+
+\newpage
+
+% --------------------------- %
+% Chapter 2: Text Data Access
+% --------------------------- %
+\section{Text Data Access}
+\subsection{Accessing Modalities}
+There exist different modalities to access text data:
+\begin{itemize}
+    \item \textbf{Push mode}: the system provides information using knowledge about the user's stable need
+    \item {\textbf{Pull mode}}: the system grabs and returns information selected ad hoc by the user
+    \item {\textbf{Querying}}: the system returns documents concerning user's keywords used in queries 
+    \item {\textbf{Browsing}}: the system provides relevant information through which the user navigates, leaving a trace to model the user behavior \\
+\end{itemize}
+\subsection{Search Engine Architecture}
+A software architecture consists of software components, their interfaces, and the relationships between them.
+The software architecture of a search engine is determined by its \textbf{effectiveness}, indicating the quality of its results, and its \textbf{efficiency}, meaning its response time and throughput. Search engines cache a document version when it is visited, and fetch it again when it is newly visited. \\
+\subsection{The IR Process}
+The \textbf{IR process} of a search engine is divided into sub-processes:
+\begin{enumerate}
+    \item \textbf{Indexing process}: documents are indexed and stored offline
+    \item \textbf{Query process}: user’s query is analyzed by the system
+    \item \textbf{Retrieval process}: queries representations are compared with indexed documents
+    \item \textbf{Relevance Feedback Process}: documents are returned to the user
+\end{enumerate}
+\begin{center}
+    \includegraphics[width=7.5cm]{IR_process.png}\\
+\end{center}
+\subsubsection{Indexing process}
+The \textbf{indexing process} takes as input a document and outputs an index and the stored document:
+\begin{enumerate}
+    \item \textbf{Text acquisition} (\textbf{Crawler}): identifies and stores documents for indexing
+    \item \textbf{Text transformation} (\textbf{Analysis}): transforms documents into index terms
+    \item \textbf{Index creation}: creates indexes from terms to support searching \\
+\end{enumerate}
+\subsubsection{Query and Retrieval Process}
+\begin{enumerate}
+    \item \textbf{User interaction}: supports the creation of queries and display of results
+    \item \textbf{Ranking and retrieval}: generates ranked lists of documents using queries and indexes
+    \item \textbf{Evaluation}: monitors and measures effectiveness and efficiency offline
+\end{enumerate}
+Documents are stored to be compared with the query and to let the engine extract some snippets which will be displayed with the results. \\
+\subsubsection{Relevance Feedback Process}
+\begin{enumerate}
+    \item \textbf{User evaluation}: the user assesses the effectiveness of system
+    \item \textbf{User feedback}: supports refinement of query and of results display
+    \item \textbf{Ranking and retrieval}: the system regenerates lists of documents
+\end{enumerate}
+\subsection{IR semantics}
+Formal formulation of IR:
+\begin{itemize}
+    \item \textbf{Vocabulary}: $ V = \{w_1, \ w_2, \ \dots, \ w_n\} $ of language
+    \item \textbf{Document}: $ d_i = \ d_{i1}, \ \dots, \ d_{im} \ $ where $ \ d_{ij} \in V $
+    \item \textbf{Collection}: $ C = \{d_1, \ \dots, \ d_m\} $
+    \item \textbf{Query}: $ q \ = \ q_1, \ \dots, \ q_m \ $ where $ \ q_i \in V $
+    \item Set of relevant documents: $ R(q) \subseteq C $
+    \begin{itemize}
+        \item unknown and user-dependent
+        \item query is a “hint” on which document is in $ R(q) $
+    \end{itemize}
+    \item Task: compute $ R'(q) $, an approximation of $ R(q) $:
+    \begin{itemize}
+        \item retrieval status value: an estimate $ R' $ of the real relevance $ R $ of docs to $ q $ \\
+    \end{itemize}
+\end{itemize}
+\subsection{How To Compute $ R'(q) $}
+\begin{itemize}
+    \item Strategy 1: \textbf{Document selection}
+    \begin{itemize}
+        \item $ R'(q) = \{d \in C \ | \ f(d,q) = 1\} $, where $ f(d,q) \in \{0,1\} $ is an indicator function (binary classifier)
+        \item absolute relevance: the system must decide if a document is relevant or not
+        \item it is also called Boolean retrieval
+    \end{itemize}
+    \item Strategy 2: \textbf{Document ranking}
+    \begin{itemize}
+        \item $ R'(q) = \{d \in C \ | \ f(d,q) > 0\} $, where $ f(d,q) \in R $ is a relevance measure function: $ 0 $ is a cutoff determined by the user
+        \item relative relevance: system only needs to decide if one doc is more likely relevant than another 
+        \item it is also called Ranked Retrieval
+    \end{itemize}
+\end{itemize}
+In document selection, the classifier is not very accurate due to over- or under-constrained queries and it does not give an order to the relevant documents, while ranking does. \\
+\subsection{Theoretical Justification for Ranking}
+\textbf{Probability Ranking Principle} [Robertson 77]: returning a ranked list of documents in descending order of probability that a document is relevant to the query is the optimal strategy under the following two assumptions: 
+\begin{enumerate}
+    \item a user would browse the results sequentially
+    \item the utility of a document is independent of the utility of any other document 
+\end{enumerate}
+
+\newpage
+
+% ------------------------- %
+% Chapter 3: Implementation
+% ------------------------- %
+\section{Implementation}
+\subsection{Document Indexing}
+\textbf{Indexing} converts documents to data structures to enable fast search. The inverted index is the dominating indexing method for supporting basic search algorithms, but before inverting the index we need to preprocess the documents to extract the relevant features.
+\subsubsection{Processing Text}
+It is necessary to convert words to index terms for many reasons such as matching the string typed by the user is too restrictive and not all words are of equal value. There is a huge variety of words used in text, but many \textbf{statistical} characteristics of word occurrences are predictable. The distribution of word frequencies is skewed since a few words occur very often and many words rarely or hardly ever occur.
+\subsubsection{Zipf's Law}
+\textbf{Zipf's law} states that "\textit{the rank r of a word times its frequency f is approximately a constant (k)}".
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=7.5cm]{zipf_law.png}
+    \caption{Zipf's law graph}
+\end{figure}
+\newpage
+\subsection{Text Indexing: the Steps}
+Text indexing can be broken up into sequential steps:
+\begin{enumerate}
+    \item \textbf{Tokenization}
+    \item \textbf{Stopword removal}
+    \item \textbf{Stemming}
+    \item Detecting phrases
+    \item \textbf{POS tagging and N-grams}
+    \item Processing document structure and markup
+    \item Named Entity Recognition
+    \item Link analysis
+    \item \textbf{Build inverted index}
+    \item Compress inverted index
+\end{enumerate}
+\subsubsection{Tokenization}
+\textbf{Tokenizing} means breaking down words into appropriate sequences of characters following a set of rules such as changing upper- to lower-case.
+Example:
+\begin{center}
+    "\textit{Bigcorp's 2007 bi-annual report showed profits rose $10\%$}" \\ becomes: \\ "\textit{bigcorp 2007 annual report showed profits rose}"
+\end{center}
+It is too simple for most search applications due to the amount of lost information. Small decisions in tokenizing can have a major impact on queries' effectiveness.
+The first step is to parse the document to find the elements to tokenize, identify them, and index every alphanumeric characters sequence terminated by a space or a special character.
+
+\subsubsection{Stopping}
+Since \textbf{function words} have little meaning on their own, they are treated as \textbf{stopwords} (i.e. removed) to reduce index space and improve effectiveness. Although, they can still be important in some combinations such as "\textit{United States of America}".
+A stopword list can either be created from high-frequency words or be based on a standard one.
+The best policy is to index all words and make decisions about which ones to use at query time.
+
+\subsubsection{Stemming}
+There exist many morphological variations of words distinguished in \textbf{inflectional}, meaning plurals and tenses, and \textbf{derivational}, meaning making verbs nouns and more.
+\textbf{Stemmers} reduce these variations to a common \textbf{stem} through some techniques such as removing prefixes and suffixes to obtain a significant effectiveness improvement. There are two basic stemming approaches: the \textbf{algorithmic approach}, which uses programs to determine related words, and the \textbf{dictionary-based approach}, which uses lists of related words.
+The algorithmic stemmers remove "\textit{s}" ending assuming plural or third person in verbs, but also obtaining many \textbf{false negatives}, such as "\textit{supplies}" $\rightarrow$ "\textit{supplie}", and \textbf{false positives}, such as "\textit{ups}" $\rightarrow$ "\textit{up}".
+The dictionary-based stemmers remove endings based on a dictionary obtaining real words instead of stems, having more precision concerning the algorithmic ones, but also being more expensive to run. 
+The \textbf{Porter stemmer} is an algorithmic stemmer that removes the longest possible suffix at each step.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=7.5cm]{porter_stemmer.png}
+    \caption{Porter stemmer example}
+\end{figure}
+Since it is sometimes too aggressive or too weak, the \textbf{Porter2 stemmer} has been designed to address some of its issues and is used with other languages.
+The \textbf{Krovetz stemmer} is a hybrid algorithmic-dictionary-based stemmer:
+\begin{enumerate}
+    \item check a word in a dictionary
+        \begin{itemize}
+            \item if present, the word is either left alone or replaced with “exception”
+            \item if not present, the word is checked for suffixes
+        \end{itemize}
+    \item check again dictionary after removal
+\end{enumerate}
+It has a lower false positive rate, but a higher false negative rate and is computationally expensive.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=7.5cm]{stemmers_comparison.png}
+    \caption{Stemmers comparison example}
+\end{figure}
+
+\subsubsection{POS Tagger}
+\textbf{Part-Of-Speech} (\textbf{POS}) tagging is the process of marking up a word as corresponding to a particular part of speech based on its definition and context.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=7.5cm]{pos_tagging_example.png}
+    \caption{POS tagging example}
+\end{figure}
+POS taggers use statistical models of text to predict syntactic tags of words.
+This is the most accurate approach to identify the role of a word, but also the most expensive.
+Since it is too slow for collections, phrases are defined as sequences of \textbf{n-grams}.
+
+\subsubsection{Build Inverted Index}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=7.5cm]{inverted_index.png}
+    \caption{Inverted index example}
+\end{figure}
+The data structures used for \textbf{inverted indexes} are either dictionaries, since they have a modest size and fast access, or postings since they have huge sizes.
+The main difficulty is building a huge index with limited memory.
+Inverted indexes can also support ranking algorithms and proximity matches, as shown in the following images:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{inverted_index_1.png}
+    \includegraphics[width=7.5cm]{inverted_index_2.png}
+    \caption{Better inverted indexes}
+\end{figure}
+to construct an inverted index:
+\begin{enumerate}
+    \item Collect local tuples: $(termID, \ docID, \ freq)$
+    \item Sort local tuples to make runs
+    \item pair-wise merge runs
+    \item Output inverted file
+\end{enumerate}
+During \textbf{distributed processing}, large numbers of inexpensive servers are used rather than larger and more expensive machines, since they are cheaper, can be upgraded easily, and have fault tolerance.
+\newpage
+
+\subsection{Scoring Documents}
+A general algorithm for \textbf{scoring} documents can be defined as:
+\[
+    f(q,d) = f_a(h(g(t_1,d,q), \dots, g(t_k,d,q)), f_d(d), f_q(q))
+\]
+\begin{itemize}
+    \item Final score adjustment: $f_d(d)$ and $f_q(q)$ are precomputed
+    \item Weighted aggregation $h$: maintain a score accumulator for each $d$
+    \item For each query term $t_i$:
+        \begin{enumerate}
+            \item Fetch the inverted list $\{(d_1,f_1), \dots, (d_n,f_n)\}$
+            \item For each entry $(d_j,f_j)$, compute $g(t_i, d_j, q)$ and update the score accumulator for $h$
+        \end{enumerate}
+    \item Adjust the score to compute $f_a$ and sort
+\end{itemize}
+
+% --------------------------- %
+% Chapter 4: Retrieval Models
+% --------------------------- %
+\section{Retrieval Models}
+Retrieval processes are based on \textbf{retrieval models} that match a query with a document. They offer a formalization of the concept of relevance, giving a computational definition for it. State of the art models are based on ranking functions relying on "bag of words" representation, terms frequency, documents frequency, and documents length.
+There exist at least two classes of retrieval models: the \textbf{set-based models}, where
+\[
+    f(q,d) = \{0,1\},
+\]
+and the \textbf{similarity-based models}, where
+\[
+    f(q,d) = similarity(q,d) = [0,\infty]
+\]
+
+\subsection{Boolean Model}
+The \textbf{Boolean model} is the most important set-based retrieval model. It has two possible outcomes for query processing: $true$ and $false$, which give an exact-match retrieval.
+Queries are usually specified using Boolean operators and sequences of queries are driven by the number of retrieved documents. Let's see an example for news about "\textit{Lincoln}":
+\begin{enumerate}
+    \item president $AND$ lincoln
+    \item president $AND$ lincoln $AND NOT$ (automobile $OR$ car)
+    \item president $AND$ lincoln $AND$ biography $AND NOT$ (automobile OR car)
+    \item $\dots$
+\end{enumerate}
+The Boolean retrieval gives back predictable and easy to explain results, can incorporate many features, but its effectiveness depends entirely on the user and it may be difficult to think and write complex queries.
+
+\subsection{Ranked Retrieval}
+\textbf{Ranked retrieval} is better since documents are presented according to their match with the query:
+\begin{itemize}
+    \item Query: $q = q_1, \dots, q_m$ where $q_i \in V$
+    \item Document: $d = d_1, \dots, d_n$ where $d_i \in V$
+    \item \textbf{Ranking function}: $f(q,d) \in \mathbb{R}$
+\end{itemize}
+Relevant documents should be ranked on top of non-relevant ones.
+The key challenge is to estimate the likelihood that a document $d$ is relevant to a query $q$.
+There exist several ranked retrieval models:
+\begin{itemize}
+    \item \textbf{Similarity-based models}: $f(d,q) = similarity(q,d) = [0, \infty]$
+    \item \textbf{Probabilistic models}: $f(d,q) = p(R = 1 | d,q),$ where $R \in \{0,1\}$
+    \item \textbf{Probabilistic inference model}: $f(q,d) = p(d \rightarrow q)$
+    \item \textbf{Axiomatic model}: $f(d,q)$ must satisfy a set of constraints
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{retrieval_models.png}
+    \caption{Common ideas of ranked retrieval models}
+\end{figure}
+
+\subsection{Vector Space Model}
+The \textbf{Vector Space Model} (\textbf{VSM}) is a similarity-based model that represents a document or a query by a \textbf{term vector}, with each of them defining one dimension.
+A single term identifies a basic concept, while $N$ terms define an \textbf{N-dimensional space}:
+\begin{center}
+    Query vector: $q = (x_1, \dots, x_N)$, where $x_i \in \mathbb{R}$ is a query term weight \\
+    Document vector: $d = (y_1, \dots, y_N)$, where $y_j \in \mathbb{R}$ is a document term weight
+\end{center}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{vsm.png}
+    \caption{Vector Space Model representation}
+\end{figure}
+Basic concepts are assumed to be orthogonal, meaning that they are independent from one another.
+In the simplest VSM, the \textbf{similarity} $Sim$ is obtained through the dot product of vectors $q$ and $d$:
+\[
+    Sim(q,d) = <q,d> = \sum_{i = 1}^N x_i \cdot y_i,
+\]
+where $x_i$, $y_i \in {0, 1}$, since either a word is present or not in a document.  
+Despite this, it has two problems: matching the same word more times deserves more credit and matching a word could be more important than matching another one.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{ideal_ranking.png}
+    \includegraphics[width=7.5cm]{vsm_ranking.png}
+    \caption{Ideal vs VSM ranking}
+\end{figure}
+to solve the first problem, the \textbf{term frequency weighting} must be introduced, defining as $x_i$ the count of the word $W_i$ in the query, and as $y_i$ the count of the word $w_i$ in the document.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{vsm_counter.png}
+    \caption{Term frequency vector representation}
+\end{figure}
+To solve the second problem, the \textbf{Inverse Document Frequency} (\textbf{IDF}), defining $y_i$ as:
+\[
+    y_i = c(W_i, d) \cdot IDF(W_i)
+\]
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{IDF_1.png}
+    \includegraphics[width=7.5cm]{IDF_2.png}
+    \caption{VSM with TF-IDF weighting}
+\end{figure}
+It has now a better weighting, but still wrong.
+to fix the results, the \textbf{TF Transformation} is needed, since we need a robust and effective transformation with an upper bound that avoids the dominance by one single term over all others.
+Finally, we obtain the following formula:
+\[
+    f(q,d) = \sum_{w \in q \bigcap d} c(w,q) \cdot \displaystyle\frac{(k + 1 \cdot c(w,d))}{c(w,d) + k} \cdot log \displaystyle\frac{M + 1}{df(w)}
+\]
+A document can be long because it has more words or more content. 
+Since long documents have a better chance to match any query, they must be penalized by \textbf{document length normalization} using a \textbf{pivoted length normalizer}, which is an average length used as a pivot.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{length_normalizer.png}
+    \caption{Pivoted length normalization representation}
+\end{figure}
+
+
+\subsection{Probabilistic Models}
+\textbf{Probabilistic models} introduce the concept of \textbf{query likelihood}: if a user likes a document $d$, how likely would the user enter a query $q$ for retrieving $d$? We define the \textbf{query likelihood ranking function} as follows:
+\[
+    f(d,q) = p(R = I | d,q) \approx p(q |d, R = I) \approx \displaystyle\frac{count(q,d, R = 1)}{count(q,d)}
+\]
+to compute the probability that a user formulates the right query and the probability of text in general, we must use a \textbf{Language Model} (\textbf{LM}), which is a probability distribution over word sequences that quantifies the uncertainties in the natural language. \\
+//Example:
+\begin{itemize}
+    \item $p($“\textit{Today is Wednesday}”$) \approx 0.001$
+    \item $p($“\textit{Today Wednesday is}”$) \approx 0.0000000000001$
+    \item $p($“\textit{The eigenvalue is positive}”$) \approx 0.00001$
+\end{itemize}
+It can perform different types of functions:
+\begin{itemize}
+    \item \textbf{Speech recognition}: if we see “\textit{John}” and “\textit{feels}”, how likely will we see “\textit{happy}” as opposed to “\textit{habit}” as the next word?
+    \item \textbf{Text categorization}: if we see “\textit{baseball}” three times and “\textit{game}” once in an article, how likely is it about “\textit{sports}”?
+    \item \textbf{Information retrieval}: if a user is interested in sports, how likely would he use “\textit{baseball}” in a query?
+\end{itemize}
+It can also be regarded as a probabilistic mechanism for generating text.
+\subsubsection{Unigram Language Model}
+The simplest LM is the \textbf{Unigram Language Model}, which generates each word independently through \textbf{word distribution}:
+\[
+    p(w_1,w_2,\dots , w_N) = p(w_1) \cdot p(w_2) \cdot \dots \cdot p(w_N)
+\]
+//Example:
+\begin{itemize}
+    \item $p($"\textit{today is Wednesday}"$) = p($"\textit{today}"$) \cdot p($"\textit{is}"$) \cdot p($"\textit{Wednesday}"$)$
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{unigram_1.png}
+    \includegraphics[width=7.5cm]{unigram_2.png}
+    \caption{Unigram text generation and estimation}
+\end{figure}
+LMs are also used for \textbf{association analysis}, which checks what words are semantically related to a chosen one: the topic LM is \textbf{normalized} using a \textbf{background LM} $B$ such as the general background English text:
+\begin{center}
+    \textbf{Normalized Topic LM}: $p(w|$"\textit{word}"$) / p(w|B)$
+\end{center}
+
+\subsection{Query Generation by Sampling Words}
+If a user is thinking of a document, how likely would he pose a certain query?
+\begin{center}
+    $p(q = $word\_1 \ word\_2$ | d = $document $) = p($word\_1$|d) \cdot p($word\_2$|d) = \displaystyle\frac{c(word\_1, d)}{|d|} \cdot\displaystyle\frac{c(word\_2, d)}{|d|} $ 
+\end{center}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{query_likelihood.png}
+    \caption{Query likelihood example}
+\end{figure}
+
+\subsection{Smoothing}
+\textbf{Smoothing} is used to estimate the value of $p(w|d)$.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{smoothing.png}
+    \caption{Smoothing graph}
+\end{figure}
+We discount the maximum likelihood estimation $pML$ to save some probability to unseen words.
+Let the probability of an unseen word be proportional to its probability given by a reference LM:
+\begin{center}
+    $p(w|d) = 
+    \cases p_{seen}(w|d) $ if $w$ is seen in $d \ \ \ $ \textbf{Discounted ML}$
+    \cases \alpha_dp(w|C) $ otherwise \ \ \ \textbf{Collection language model}
+\end{center}
+Rewriting the ranking function with smoothing appears like this:
+\[
+    \sum_{w \in V, \ c(w,d) > 0} c(w,d) \cdot log\displaystyle\frac{p_{seen}(w|d)}{\alpha_d(w|C)} + |q| \cdot log\alpha_d + \sum_{w \in V} c(w,q) \cdot logp(w|C)
+\]
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{rewriting.png}
+    \caption{Rewriting representation}
+\end{figure}
+
+MISSING LAST 10 OF SMOOTHING.
+
+\newpage
+
+% ----------------------------- %
+% Chapter 5: Relevance Feedback
+% ----------------------------- %
+\section{Relevance Feedback}
+There exist three major forms of \textbf{feedback}:
+\begin{itemize}
+    \item \textbf{Relevance}: user indicate expressively documents that are relevant to the query and make explicit judgments on the system results
+    \item \textbf{Pseudo}: system assumes the top retrieved documents are relevant
+    \item \textbf{Implicit}: system assumes relevance by monitoring what the user does
+\end{itemize}
+In \textbf{relevance feedback}, users make explicit relevance judgments on the system results.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{5_relevance_feedback.png}
+\caption{Relevance feedback representation}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{5_pseudo_feedback.png}
+\caption{Pseudo feedback representation}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{5_implicit_feedback.png}
+\caption{Implicit feedback representation}
+\end{figure}
+
+\subsection{Relevance Feedback in Vector Space Model}
+A system learns from relevance feedback by \textbf{query expansion}, meaning adding new weighted terms, and \textbf{query modification}, meaning adjusting weights of old terms.
+In the vector space model, relevance feedback moves queries closer to relevant documents and maybe away from non-relevant ones.
+
+\subsection{Rocchio Feedback}
+The \textbf{Rocchio feedback} is based on the \textbf{optimal query}, which maximizes the difference between the relevant documents' average vector and the average vector representing the non-relevant ones. The resulting query is longer and expanded since frequent terms of relevant documents will be added to the modified query and the non-frequent ones in the non-relevant document will be removed. \\
+//Example: if \textit{Doc3} is relevant, then the query vector moves in its direction, changing the relevance estimation of all the other documents.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{6_rocchio_feedback.png}
+    \caption{Rocchio algorithm illustration}
+\end{figure}
+The new query $q_j'$ is a linear combination of the original query $q_j$, the average relevant documents, and the average non-relevant documents, governed by 3 parameters, $\alpha = 8$, $\beta = 16$, and $\gamma = 4$:
+\[
+    q_j' = \alpha \cdot q_j + \beta \cdot \displaystyle\frac{1}{|Rel|} \cdot \sum_{D_i \in Rel} d_{ij} - \gamma \cdot \displaystyle\frac{1}{|Nonrel|} \cdot \sum_{D_i \in \in Nonrel} d_{ij}
+\]
+
+\newpage
+
+% ---------------------------- %
+% Chapter 6: System Evaluation
+% ---------------------------- %
+\section{System Evaluation}
+Evaluation is concerned with assessing if the system carries out its tasks properly and it is the key to building effective and efficient search engines. It measures three different aspects:
+\begin{itemize}
+    \item \textbf{Efficiency}: if the system carries out tasks with optimal use of its resources
+    \item \textbf{Effectiveness}: if the system finds what we are searching for
+    \item \textbf{Usability}: how useful is the system for real user tasks
+\end{itemize}
+
+\subsection{Cranfield Evaluation Methodology}
+The \textbf{Cranfield evaluation methodology} is the primary approach to evaluate systems' effectiveness. The idea consists of building reusable test collections and defining measures of effectiveness using:
+\begin{itemize}
+    \item sample collection of documents
+    \item sample set of queries
+    \item relevance judgments to obtain an ideal ranked list
+    \item measures to quantify how well a system's result matches the ideal list
+\end{itemize}
+Obtaining relevance judgments is an expensive time-consuming process.
+
+\subsection{Effectiveness Measures for Retrieval Sets}
+The two main effectiveness measures of IR are \textbf{precision} and \textbf{recall}.
+Let's assume that $A$ is a set of relevant documents and $B$ is a set of retrieved documents:
+\begin{center}
+    Recall $= \displaystyle\frac{|A \cap B|}{|A|}$ \\
+    Precision $= \displaystyle\frac{|A \cap B|}{|B|}$
+\end{center}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{7_effectiveness_measures.png}
+    \caption{effectiveness measures}
+\end{figure}
+There exist two types of \textbf{classification errors}:
+\begin{itemize}
+    \item False Positive - Type I error \\
+    ratio of non-relevant documents that are retrieved
+    \begin{center}
+        \textbf{Fallout} $ = \displaystyle\frac{|\bar{A} \cap B|}{|\bar{A}|}$
+    \end{center}
+    \item False Negative - Type II error \\
+    ratio of non-retrieved relevant documents
+    \begin{center}
+        False Negative $= 1 -$ Recall
+    \end{center}
+\end{itemize}
+The \textbf{F1 Score} is the \textbf{harmonic mean} of recall and precision, meaning that emphasizes the importance of small values whereas the arithmetic mean is more affected by large outliers:
+\[
+    F = \displaystyle\frac{1}{\frac{1}{2} \cdot (\frac{1}{R} + \frac{1}{P})} = \frac{2RP}{(R + P)}
+\]
+It gives equal weight to $P$ and $R$.
+Computing average precision values enables to compare ranking methods:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{7_average_precision.png}
+    \caption{Average precision}
+\end{figure}
+\begin{center}
+    Ranking $\#1$: $(1.0 + 0.67 + 0.75 + 0.8 + 0.83 + 0.6) / 6 = 0.78$ \\
+    Ranking $\#2$: $(0.5 + 0.4 + 0.5 + 0.57 + 0.56 + 0.6) / 6 = 0.52 $
+\end{center}
+\textbf{Mean Average Precision} (\textbf{MAP}) enables to summarise a system's performances and compare different ones:
+\begin{enumerate}
+    \item calculate the average precision for each query
+    \item summarize rankings from multiple queries by averaging average precision
+\end{enumerate}
+\begin{center}
+    mean average precision $= (0.78 + 0.52) / 2 = .650 $
+\end{center}
+It requires many relevance judgments in the text collection.
+
+\subsection{Recall-Precision Graphs}
+\textbf{Recall-precision graphs} provide better summaries for comparison.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{7_recall_precision_graph.png}
+    \caption{Recall-precision graph for the previous example}
+\end{figure}
+Although, in most cases, it is not possible to say which of the two systems is better.
+
+\subsection{Interpolation}
+We need to find performance measures at standard recall levels. Let's assume that $S$ is the set of observed $(R,P)$ points:
+\[
+    P(R) = max\{P' : R' \geq R \wedge (R', P') \in S\}
+\]
+\textbf{Interpolation} defines precision at any recall level as the maximum precision observed in any recall-precision point at a higher level, producing a step function that makes the comparison easier.
+\begin{figure}
+    \centering
+    \includegraphics[width=7.5cm]{7_interpolation.png}
+    \caption{Interpolation effect}
+\end{figure}
+
+\subsection{Focusing on Top Documents}
+Users tend to look at only the top part of a ranked list. Since in this case recall is not appropriate, we should measure the system's performance in retrieving relevant documents at very high ranks. We can first compute the \textbf{reciprocal rank}, meaning the reciprocal of the rank at which the first relevant document is retrieved, then the \textbf{Mean Reciprocal Rank} (\textbf{RMM}), which is the average of the reciprocal ranks over a set of queries.
+
+\subsection{Multi-level Relevance Judgments}
+If there exist multi-level relevance judgments, we can compute the \textbf{Normalized Discounted Cumulative Gain} (\textbf{nDCG}):
+\begin{enumerate}
+    \item measure the total utility of the top $k$ documents to a user
+    \item discount the utility of a lowly ranked document
+    \item normalize to ensure comparability across queries
+\end{enumerate}
+
+\newpage
+
+% -------------------------- %
+% Chapter 7: User Evaluation
+% -------------------------- %
+\section{User Evaluation}
+\textbf{User evaluation} is used to test the quality of IR systems through user interactions.
+The user carries out searches in an artificial situation with a low volume of queries, due to the cost of user time.
+
+\subsection{Operational Evaluation}
+In \textbf{operational evaluation}, users are real users in real search situations and with real tasks on a real collection. It is more expensive and difficult to run since it requires lots of user time and evaluator care not to influence the user environment, but performs better tests in real situations.
+Operational evaluation needs a very careful design of the few variables under our control:
+\begin{itemize}
+    \item system needs to be stable
+    \item need to capture user actions non-intrusively
+    \item need to avoid obstructing users' actions
+    \item we are totally in the hands of users and their moods and personalities
+\end{itemize}
+
+\subsection{User-oriented Evaluation}
+In \textbf{user-oriented evaluation}, the whole system is evaluated in a comparative way, such as through two interfaces to the same system, using objective measures, such as the time to search, and also using subjective measures, such as the ease of interaction. Although, the environment is less controlled: users have different knowledge, different abilities, and most importantly different definitions of relevance. Nevertheless, there exist things we can control, such as tasks, the time to search, and the given instructions. This evaluation is still experimental and needs to:
+\begin{enumerate}
+    \item Decide aim of the evaluation
+    \item Formulate experimental hypotheses
+    \item Define experimental methodology
+        \begin{itemize}
+            \item need to gather collections, set of people, \textbf{baseline} or \textbf{experimental} systems, search tasks, and comparison criteria
+        \end{itemize}
+    \item Carry out the experiment
+    \item analyze data
+\end{enumerate}
+
+\subsubsection{Decide Aim of Evaluation}
+Before starting with the evaluation, we must decide what are the features we intend to evaluate and what is the new feature we intend to achieve, meaning essentially what we want to know about the system.
+Finally, we must decide the aim of the experiment, such as:
+\begin{center}
+    "\textit{evaluating the effect on $X$ of changes in $Y$}".
+\end{center}
+
+\subsubsection{Formulate Experimental Hypotheses}
+The aims of the experiment must be expressed as experimental hypotheses to be tested, such as:
+\begin{center}
+    "\textit{the average searcher will use fewer queries to retrieve the same number of relevant pages using $X$ than $Y$}".
+\end{center}
+Experimental hypotheses tell us some of the information we need to gather. For example, the hypotheses
+\begin{center}
+    "\textit{$X$ returns more relevant documents per query than $Y$}"
+\end{center}
+tell us we need to store the number of documents found and the number of relevant documents contained.
+
+\subsubsection{Define experimental methodology}
+We need to gather many elements and have a clear idea of how we are going to use them:
+\begin{itemize}
+    \item Collections: what are we searching for? is the data set accessible and big enough?
+    \item People: who does the search? how much experience do they have?
+    \item Systems: different systems, different versions of the same system, or a \textbf{baseline} system and an \textbf{experimental} system.
+    \item Search tasks: are the tasks \textbf{given}, meaning more controlled and appropriate, or \textbf{real}, meaning more motivation for users?
+        \begin{itemize}
+            \item Decision tasks: "\textit{find the best museum in Rome}"
+            \item Background knowledge: "\textit{find as much information as possible on mobile phone pricing schemes}"
+            \item Fact search: "\textit{find Bill Gates email address}"
+        \end{itemize}
+    \item Criteria for comparing data
+        \begin{itemize}
+            \item Quantitative data: recall, precision, time to search (easier)
+            \item Qualitative data: usability, preference, learning (difficult)
+            \item Likert scale: qualitative data can be quantified
+                \begin{figure}[H]
+                    \centering
+                    \includegraphics[width=7.5cm]{8_likert_scale.png}
+                    \caption{Likert scale}
+                \end{figure}
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{Carry Out Experiment}
+Using experimental systems, be careful not to be too nice to subjects and give them too much help when searching. Also, it is important not to choose tasks and data that will do well on one system and badly on another one. The solutions are to adopt the proper attitude and to run pilot tests, meaning short experiment versions to debug.
+
+\subsubsection{Analyze Data}
+Proper methods of statistical data analysis need to be based on quantitative data since qualitative data are more difficult to analyze. In quantitative data analysis:
+\begin{itemize}
+    \item Recall and precision evaluation?
+        \begin{itemize}
+            \item Yes, if relevance is defined
+            \item No, otherwise
+        \end{itemize}
+    \item Search success evaluation?
+        \begin{itemize}
+            \item Give each person the same amount of minutes to search - how many tasks?
+            \item Give unlimited time to search - how long?
+        \end{itemize}
+    \item Other measures?
+        \begin{itemize}
+            \item Number of documents viewed
+            \item Number of queries run
+        \end{itemize}
+\end{itemize}
+In qualitative data analysis:
+\begin{itemize}
+    \item Users' system perceptions
+        \begin{itemize}
+            \item Think-aloud or semi-structured discussion with results interpretation
+            \item Questionnaires after each search and one after the whole experiment
+        \end{itemize}
+    \item Tests for statistical significance
+    \item Results variations
+        \begin{itemize}
+            \item Statistical tests tell us whether the variations are natural
+            \item Yes, there is no difference in systems
+            \item No, let's make claims about systems
+        \end{itemize}
+\end{itemize}
+
+\newpage
+
+% --------------------- %
+% Chapter 8: Web Search
+% --------------------- %
+\section{Web Crawling}
+A \textbf{Web crawler} finds, downloads, and caches web pages automatically, providing collections for indexing and searching. The process of a web crawler is the following:
+\begin{enumerate}
+    \item The client program connects to a \textbf{domain name system} (\textbf{DNS}) server
+    \item The DNS server translates the hostname into an \textbf{internet protocol} (\textbf{IP}) address
+    \item The crawler attempts to connect to the server host using a specific port
+    \item The crawler sends an HTTP request to the webserver to request a page (\textbf{\textit{GET}})
+\end{enumerate}
+More specifically, the actions performed by the crawler itself are the following:
+\begin{enumerate}
+    \item The crawler starts with a set of \textbf{seeds}, which are set of \textbf{uniform resource locators} (\textbf{URLs})
+    \item The seeds are added to a \textbf{frontier}, meaning a URL request queue
+    \item The crawler starts fetching and downloading pages from the request queue
+    \item The downloaded pages are parsed to find link tags that might contain other useful URLs to fetch
+    \item The new URLs are added to the frontier
+    \item Continue until no more URLs are found
+\end{enumerate}
+The most common crawling strategy is the Breadth-First, but there exist some variations, such as the complete crawling, which crawls everything is found, and the focused crawling, which targets a subset of pages concerning a given query and relying on the fact that pages have links to other ones about the same topic.
+Sites that are difficult to find are referred to as the \textbf{deep Web}, which can be split up into three categories: the \textbf{private sites}, with no incoming links or with a required log in the \textbf{form results}, which can only be reached by entering some data into a form, and the \textbf{scripted pages}, which use a client-side language to generate links.
+Since crawlers spend a lot of time waiting for responses, they use \textbf{threads} to fetch hundreds of pages at once, potentially flooding sites. To avoid this problem, crawlers use some \textbf{politeness policies}. \textbf{Robots.txt} files are used to control them and have the following structure:
+\begin{verbatim}
+    User-agent: *
+    Disallow: /private/
+    Disallow: /confidential/
+    Disallow: /other/
+    Allow: /other/public/
+    
+    User-agent: FavoredCrawler
+    Disallow:
+    
+    Sitemap: http://mysite.com/sitemap.xml.gz
+\end{verbatim}
+
+\subsection{MapReduce: Computation Pipeline}
+
+
+
+\newpage
+
+% ------------------------------ %
+% Chapter 9: Recommender Systems
+% ------------------------------ %
+\section{Recommender Systems}
+\textbf{Recommender systems} perform text access in a push mode. They can be distinguished into two types: \textbf{filtering systems} and \textbf{routing systems}. \textbf{Routing} determines the best order of documents to present to users.
+
+\subsection{Information Filtering}
+The following table shows the differences between IR and \textbf{Information Filtering} (\textbf{IF}):
+\begin{table}[]
+    \begin{tabular}{c|c|c}
+                  & Information Retrieval  & Information Filtering \\ \hline
+        Documents & static collection      & dynamic collection    \\ \hline
+        Queries   & short-lived queries    & elaborated profiles   \\ \hline
+        Needs     & short term information & long term information
+    \end{tabular}
+\end{table}
+There exist three main types of IF, which differ in the way relevant documents are determined: content-based IF, collaborative IF, and use-based IF.
+Filtering answers to the question "\textit{will user U like item X?}" in two different ways: with \textbf{item similarity}, looking at which items the user like and checking if an item is similar to them, performing content-based filtering, or with \textbf{user similarity}, looking at which users like an item and checking if a user is similar to them, performing collaborative filtering. User and item similarities can be combined.
+
+\subsection{Content-Based Filtering}
+\textbf{Content-based filtering} (\textbf{CB}) makes decisions for an individual user based on what it learned from his/her behavior, inferring interests from user feedback. Preferences can be based on the similarity between items.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{9_cb.png}
+    \caption{Content-based filtering general idea}
+\end{figure}
+There are three basic problems in CB filtering:
+\begin{enumerate}
+    \item Filtering decision: binary classifier
+    \item Initialization: initialize the filter only based on the profile text
+    \item Learning: limited relevance judgments 
+\end{enumerate}
+
+\subsection{Collaborative Filtering}
+\textbf{Collaborative Filtering} (\textbf{CF}) makes filtering decisions for an individual user based on the judgments of other users, inferring individual interests from similar users. It is based on \textbf{user profile comparison}, thus it needs a large number of users.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{9_cf.png}
+    \caption{Collaborative filtering general idea}
+\end{figure}
+CF uses statistics to find correlations between profiles. There is no content-based matching since only documents identifiers are used. Users with the same interests will have similar preferences and users with similar preferences probably share the same interests.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{9_user_vs_item.png}
+    \caption{User-based filtering vs. item-based filtering}
+\end{figure}
+To improve user similarity measures, missing values are set to average ratings and \textbf{Inverse User Frequency} (\textbf{IUF}), similar to IDF, is used. There are still some problems to deal with:
+\begin{itemize}
+    \item Size of data: we need to use very large sparse matrices to deal with large numbers of users and ratings
+    \item Cold start: new documents cannot be recommended without previous use
+\end{itemize}
+In hybrid systems, new items are found by querying and browsing.
+
+\subsection{Use-based filtering}
+\textbf{Use-based filtering} identifies documents that are semantically relevant to a profile by inferring relevant documents from user actions. The following table shows the main differences between use-based and other types of filtering:
+\begin{center}
+    \begin{table}[H]
+        \begin{tabular}{c|c|c}
+                      & Information Retrieval  & Information Filtering \\ \hline
+            Documents & static collection      & dynamic collection    \\ \hline
+            Queries   & short-lived queries    & elaborated profiles   \\ \hline
+            Needs     & short term information & long term information
+        \end{tabular}
+    \end{table}
+\end{center}
+The system tracks the user's actions such as bookmarking, saving, printing, and the time spent on reading and scrolling. It then develops a profile and uses it to retrieve new pages. It still has a couple of problems: profiles can be very messy since user interaction styles changes concerning many factors, and can be intrusive since it is like someone is watching over the user's shoulders.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{9_summary.png}
+    \caption{Summary of filtering types}
+\end{figure}
+
+\newpage
+
+% ------------------------------ %
+% Chapter 10: Text Data Analysis
+% ------------------------------ %
+\section{Text Data Analysis}
+Text retrieval and text analytics are combined to analyze big text data.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{10_1_text_analysis.png}
+    \caption{Text data analysis representation}
+\end{figure}
+
+\subsection{Text Mining}
+\textbf{Text mining} turns data into high-quality information and actionable knowledge minimizing human effort and supplying knowledge for decision making. Text retrieval can be a preprocessor for text mining. The following is the landscape of text mining and analytics:
+\begin{enumerate}
+    \item Natural language processing and text representation
+    \item World association mining and analysis
+        \begin{itemize}
+            \item mining knowledge about language
+        \end{itemize}
+    \item Topic mining and analysis
+        \begin{itemize}
+            \item mining content of text data
+        \end{itemize}
+    \item Opinion mining and sentiment analysis
+        \begin{itemize}
+            \item mining knowledge about the observer
+        \end{itemize}
+    \item Text-based prediction (\textbf{predictive analytics})
+        \begin{itemize}
+            \item infer other real-world variables 
+        \end{itemize}
+\end{enumerate}
+
+\subsection{Natural Language Content Analysis}
+Natural Language Processing (NLP) is at the foundation of text mining. Computers are far from being able to understand natural language. Since deep NLP requires common sense knowledge and inferences and only works for limited domains, shallow NLP based on statistical methods can be performed on a large scale and is more broadly applicable.
+The following scheme shows the actions performed during NLP:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{10_2_nlp.png}
+    \caption{Basic concepts in NLP}
+\end{figure}
+In particular, \textbf{semantics analysis} is composed of two steps: entity/relation extraction and word sense and sentiment analysis.
+
+\newpage
+
+% ------------------------------------------------- %
+% Chapter 11: Opinion Mining and Sentiment Analysis
+% ------------------------------------------------- %
+\section{Opinion Mining and Sentiment Analysis}
+\textbf{Opinion mining} consists of analyzing what others think about something. It is hard to retrieve documents that report opinions and not only facts since they can be expressed in different ways, in different media, from different users, and can be hidden in vast amounts of data. Moreover, opinions are not verifiable and can be false: \textbf{fake news} consists of false or misleading information which damages the reputation of someone or something. Fake news generates \textbf{misled opinions}. \\
+\textbf{Opinion analysis} is the computational treatment of the subjectivity in text and tries to design algorithms to detect and analyze opinions in text.
+
+\subsection{Opinion Analysis}
+An \textbf{opinion} is a subjective statement describing what an \textbf{opinion holder} believes or thinks about an \textbf{opinion target} and cannot be proved right or wrong. It can also be defined with the following \textbf{quintuple}:
+\begin{center}
+    $o \ = \ (e_i, \ a_{ij}, \ oo_{ijkl}, \ h_k, \ t_l)$, where
+\end{center}
+\begin{itemize}
+    \item $e_i$: the name of an entity
+    \item $a_{ij}$: an aspect of that entity
+    \item $oo_{ijkl}$: the orientation of the opinion about that aspect
+    \item $h_k$: the opinion holder
+    \item $t_l$: the time when the opinion is expressed by the holder
+\end{itemize}
+In particular, the orientation $oo_{ijkl}$ can either be positive, negative, or neutral and can be expressed with different intensities.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{11_1_opinion_example.png}
+    \caption{Example of an opinion}
+\end{figure}
+
+\subsection{Opinion Analysis Levels}
+Opinion analysis can be divided into the following three different \textbf{levels} of analysis:
+\begin{enumerate}[label=\Alph*]
+    \item \textbf{Document level}
+        \begin{itemize}
+            \item Assumptions:
+                \begin{itemize}
+                    \item a document focuses on a single object
+                    \item a document contains an opinion from a single opinion holder 
+                \end{itemize}
+            \item Classifies a whole document as expressing a positive or negative sentiment
+                \begin{itemize}
+                    \item Task 1: identify if the document is opinionated
+                    \item Task 2: determine the polarity of the document
+                \end{itemize}
+            \item Example: "\textit{I bought a Samsung Galaxy phone a week ago. I simply love it. The camera quality is amazing}".
+        \end{itemize}
+    \item \textbf{Sentence level}
+        \begin{itemize}
+            \item Assumption: a sentence contains only one opinion
+            \item Determines whether a sentence expresses a positive, negative, or neutral opinion
+                \begin{itemize}
+                    \item Task 1: identify if the sentence is opinionated
+                    \item Task 2: determine the polarity of the sentence
+                \end{itemize}
+            \item Example: “\textit{This is a beautiful shirt}”.
+        \end{itemize}
+    \item \textbf{Aspect level}
+        \begin{itemize}
+            \item Performs finer-grained analysis and determines the opinion expressed towards different aspects
+                \begin{itemize}
+                    \item Task 1: identify and extract the entity aspects
+                    \item Task 2: determine the polarity of the opinions of each aspect
+                    \item Task 3: group aspects synonyms
+                \end{itemize}
+        \end{itemize}
+\end{enumerate}
+
+\subsection{Sentiment Analysis Approaches}
+There exist three classes of \textbf{sentiment analysis approaches}: unsupervised, supervised, and semi-supervised.
+\subsubsection{Unsupervised Approaches}
+In \textbf{unsupervised approaches}, also known as lexicon-based approaches, no training data is required and rely on external lexical resources that associate a polarity score to each term, defining the content sentiment. \\
+The \textbf{sentiment lexicons} are lists of words and expressions used to express opinions. There are three ways to build lexicons: manual lexicons, dictionary-based lexicons, and corpus-based lexicons, and there exist three different types of lexicons: plain lists, meaning lists of positives and negatives, scores, depending on the intensity of the sentiment, and real numbers, where a word has a value based on the sentiment.
+They have some advantages, but also some disadvantages:
+\begin{itemize}
+    \item Advantages:
+        \begin{itemize}
+            \item fairly accurate independently of the medium
+            \item no need for training corpus
+            \item easily extended to new domains with additional words
+            \item easy to rationalize prediction output and to explain them
+        \end{itemize}
+    \item Disadvantages:
+        \begin{itemize}
+            \item costly to implement
+            \item in-domain ML models underperform if compared to well-trained ones
+            \item sensitive to affective dictionary coverage
+        \end{itemize}
+\end{itemize}
+\subsubsection{Supervised Approaches}
+\textbf{Supervised approaches} use classical ML algorithms to extract characteristic patterns for each category building a predictive model. These approaches mostly focus on better modeling the documents.
+\subsubsection{Semi-Supervised Approach}
+\textbf{Semi-supervised approaches} perform the following steps:
+\begin{enumerate}
+    \item Get manually annotated documents from a specific domain
+    \item Train any standard classifier using bag-of-words as features
+    \item Apply trained classifier to test corpus or application
+\end{enumerate}
+In these approaches, the features to focus on must be carefully specified.
+It has one important advantage and some disadvantages:
+\begin{itemize}
+    \item Advantage:
+        \begin{itemize}
+            \item Tend to attain good predictive accuracy
+        \end{itemize}
+    \item Disadvantages"
+        \begin{itemize}
+            \item Need for a very specific training corpus:
+                \begin{itemize}
+                    \item automated extraction
+                    \item crowdsourcing the annotation process
+                \end{itemize}
+            \item Domain sensitivity
+        \end{itemize}
+\end{itemize}
+
+\subsection{Opinion Retrieval}
+\textbf{Opinion retrieval} consists of retrieving documents that express an opinion about a topic. The following table compares IR with OR:
+\begin{center}
+    \begin{table}[H]
+        \begin{tabular}{c|c|c}
+                              & Information Retrieval   & Opinion Retrieval                         \\ \hline
+            Search for        & factual topics          & opinions and opinionated topics           \\ \hline
+            Rank according to & topical relevance score & relevance to topic and content of opinion
+        \end{tabular}
+    \end{table}
+\end{center}
+Opinion retrieval is composed of retrieval and opinion analysis and performs the following steps:
+\begin{enumerate}
+    \item Rank documents based on their topical relevance
+    \item Use off-the-shelf retrieval systems and weighting models
+    \item Re-rank results by applying heuristics for detecting opinions
+\end{enumerate}
+The following formula computes a document's relevance score:
+\begin{center}
+    $score(Q, D) = (1 - a) \cdot relevance\_score(Q,D+) + a \cdot opinion\_score(Q,D)$
+\end{center}
+
+\newpage
+
+% --------------------------- %
+% Chapter 12: Text Clustering
+% --------------------------- %
+\section{Text Clustering}
+\textbf{Text clustering} groups similar objects together depending on their natural structure. An important issue of clustering consists of determining what is similar: users define the \textbf{clustering bias} for assessing similarity. Objects that do not appear in clusters are called \textbf{outliers}.
+In text retrieval, clustering is used on terms, sentences, websites, and so on to let us get a sense of the overall content of a collection.
+It is used to link similar text objects and to generate a hierarchy with sub-clusters.
+
+\subsection{Clustering Techniques}
+Clustering is unsupervised, but there exist some predefined criteria on which objects should go together.
+It can be divided into two main categories: \textbf{similarity-based clustering}, which differs in agglomerative clustering and divisive clustering, and \textbf{model-based clustering}, where the data is generated from a mixture of component models.
+\subsubsection{Similarity-based Clustering}
+Similarity-based clustering provides a clustering bias to measure similarity between two text objects, finding an optimal partitioning to maximize intra-group similarity and minimize inter-group similarity. There are two strategies for obtaining optimal clustering: progressively construct a hierarchy of clusters either in a bottom-up way, gradually grouping objects into larger clusters, or in a top-down way, gradually partition the data into smaller clusters; or start with an initial tentative clustering and iteratively improve it.
+Two representative similarity-based methods are the Hierarchical Agglomerative Clustering (HAC) and the k-means, and both of them require a symmetric and normalized similarity function.
+The \textbf{Hierarchical Agglomerative Clustering} (\textbf{HAC}) gradually groups objects in a bottom-up fashion to form a hierarchy until some stopping criterion is met.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=5.3cm]{12_1_hdc.png}
+    \includegraphics[width=5.1cm]{12_2_hac.png}
+    \caption{Hierarchical Divisive [left] and Hierarchical Agglomerative [right] clusterings}
+\end{figure}
+
+\subsection{Clustering Strategies}
+\begin{itemize}
+    \item \textbf{Single-link}
+        \begin{itemize}
+            \item creates "loose" clusters and is sensitive to outliers
+            \item $cost(C_i,C_j) = min\{dist(X_i,X_j) \ | X_i \in C_i, X_j \in C_j\}$
+        \end{itemize}
+    \item \textbf{Complete-link}
+        \begin{itemize}
+            \item creates "tight" clusters and is sensitive to outliers
+            \item $cost(C_i,C_j) = max\{dist(X_i,X_j) \ | X_i \in C_i, X_j \in C_j\}$
+        \end{itemize}
+    \item \textbf{Average-link}
+        \begin{itemize}
+            \item clusters “in between” the above two and is insensitive to outliers
+            \item $cost(C_i,C_j) = \displaystyle\frac{\sum_{X_i \in C_i, \ X_j \in C_j} dist(X_i,X_j)}{|C_i| \cdot |C_j|}$
+        \end{itemize}
+    \item \textbf{Average group linkage}: $cost(C_i, C_j) = dist(\mu_{C_i}, \mu_{C_j})$
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{12_3_clusterings.png}
+    \caption{Clustering strategies}
+\end{figure}
+
+\subsection{Cluster Representative}
+To represent clusters, we use \textbf{clustroids}, which are those "points that are closest to all other points", and \textbf{centroids}, which are the average of all points in the cluster.
+"Closest" means that the point has the smallest maximum distance to the others, the smallest average distance to the others, or the smallest sum of squares of distances to the others.
+There exist different approaches to determine the nearness of clusters:
+\begin{enumerate}
+    \item Treat clustroids as centroids and measure the distance between them
+    \item Compute the intercluster distances, meaning the minimum of the distances between any two points, one from each cluster
+    \item Analyze the cohesion of clusters and merge clusters whose union is most cohesive
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{12_4_example.png}
+    \caption{Example}
+\end{figure}
+
+\subsection{K-Means clustering}
+\textbf{K-means clustering} picks a value for $k$, which is the number of clusters and initializes those clusters by picking one point for each of them as far away as possible from the previous points. Then, it populates clusters as follows:
+\begin{enumerate}
+    \item Place each point in the cluster with the nearest centroid
+    \item Update the locations of centroids of the clusters
+    \item Reassign all points to their closest centroid
+    \item Repeat steps 2 and 3 until convergence, meaning until points don’t move between clusters and centroids stabilize
+\end{enumerate}
+to choose the best value for $k$, we must try different values looking at the change in the average distance to clustroids as they increase: the average falls rapidly until the right $k$ is chosen, then changes a little. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{12_5_k_value.png}
+    \caption{Best $k-$value selection}
+\end{figure}
+There exist many variations of $k-$means clustering: in the \textbf{$k$-nearest neighbor clustering}, $k$ is the number of elements in the cluster.
+
+\subsection{Evaluation of Clustering}
+Evaluation of clustering analyzes three measures based on objects and purposes:
+\begin{enumerate}
+    \item \textbf{Coherence}: how similar objects in a cluster are
+    \item \textbf{Separation}: how far objects in different clusters are
+    \item \textbf{Utility}: how useful the discovered clusters are
+\end{enumerate}
+The most important determinant of effectiveness is a good similarity measure. There exist two types of evaluation: direct evaluation and indirect evaluation. \\
+Direct evaluation measures the \textbf{closeness} of a result to the ideal one and has a bias imposed by the human assessors. Its procedure is the following:
+\begin{enumerate}
+    \item Given a test set, humans create an ideal clustering result known as the "\textit{gold standard}"
+    \item Use a system to produce clusters from that test set
+    \item Quantify the similarity between the system-generated clusters and the gold standard ones
+\end{enumerate}
+Indirect evaluation measures the \textbf{usefulness} of a result and has a bias imposed by the intended application. Its procedure is the following:
+\begin{enumerate}
+    \item Create a test set to quantify the performance of any system
+    \item Choose a baseline system to compare with
+    \item Add a clustering algorithm to the baseline system
+    \item Compare the performance of the clustering system and the baseline one
+\end{enumerate}
+
+\newpage
+
+% ------------------------------- %
+% Chapter 13: Text Categorization
+% ------------------------------- %
+\section{Text Categorization}
+In \textbf{text categorization}, every object is put in a category, while in \textbf{text classification} each object obtains a label to identify its class. Given that, classification and categorization have the same meaning.
+While classification answers the question: “\textit{what class does this item belong to?}”, and is a supervised learning task, clustering answers the question: “\textit{how can I group this set of items?}” and is an unsupervised learning task.
+
+\subsection{Classification}
+Classification is the task of automatically applying labels to items and is useful for search-related tasks such as spam detection and sentiment classification. to classify a measure about something, we use the following procedure:
+\begin{enumerate}
+    \item Identify the set of features indicative of the measure
+    \item Extract the features from that something
+    \item Combine the shreds of evidence from the features into a hypothesis
+    \item Classify the item based on the evidence
+\end{enumerate}
+
+\subsection{Text Categorization}
+Given a set of predefined categories, possibly forming a hierarchy, and a training set of labeled text objects, we need to classify a text object into one or more of the categories. Categories can be either internal, characterizing a text object, or external, characterizing  an entity associated with the text object.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{13_1_text_categorization.png}
+    \caption{Text categorization example}
+\end{figure}
+Text categorization is used to enrich text representation, extending it in multiple levels and facilitating aggregation of text content, and also to infer properties of entities associated with text data.
+
+\subsection{Variants of Problem Formulation}
+\begin{itemize}
+    \item \textbf{Binary categorization}: splits into two categories
+        \begin{itemize}
+            \item Retrieval: $\{relevant-doc, \ non-relevant-doc\}$
+            \item Spam filtering: $\{spam, \ non-spam\}$
+            \item Opinion: $\{positive, \ negative\} $
+        \end{itemize}
+    \item \textbf{$K-$category categorization}: splits into more categories
+        \begin{itemize}
+            \item Topic categorization: $\{sports, \ science, \ travel, \ business, \ \dots\}$
+            \item Email routing: $\{folder1, \ folder2, \ folder3, \ \dots \}$
+        \end{itemize}
+    \item \textbf{Hierarchy categorization}: splits into categories forming a hierarchy
+    \item \textbf{Joint categorization}: performs many categorization tasks in a joint manner
+\end{itemize}
+
+\subsection{Text Categorization System}
+A classification system has three development phases: training, testing, and validation. Such a system must be trained to work properly. Training involves presenting examples of objects with labels to classify, which is done by a combination of two components: a \textbf{feature extractor}, which extracts features associated with the label, and a \textbf{machine learning algorithm}, to learn how to best associate features with a class. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{13_2_system_structure.png}
+    \caption{Categorization system structure}
+\end{figure}
+
+\newpage
+
+% -------------------------------------------- %
+% Chapter 14: Multimedia Information Retrieval
+% -------------------------------------------- %
+\section{Multimedia Information Retrieval}
+\subsection{Audio Indexing and Retrieval}
+\textbf{Audio} is any signal whose frequencies range is in the human audible range and is normally displayed as a waveform with several physical characteristics used to describe it. Most audio characteristics have no semantic content, thus are only used for indexing and retrieving.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{14_1_frequency.png}
+    \caption{Waveform characteristics example}
+\end{figure}
+From the physical characteristics, we can mathematically derive some acoustic features such as pitch and loudness. These features are functions changing over time which must be \textbf{sampled} with the following procedure:
+\begin{enumerate}
+    \item Compute acoustic features at a certain time interval
+    \item For each feature, derive the average value $\mu$, the variance $\sigma$, and the autocorrelation $\rho$, meaning the measure of the function smoothness
+        \begin{center}
+            $ s = ( \ (\mu_l, \sigma_l, \rho_l), \ (\mu_{br}, \sigma_{br}, \rho_{br}), \ \dots, \ (\mu_h, \sigma_h, \rho_h) $
+        \end{center}
+    \item Weight the values of the features by amplitude
+\end{enumerate}
+The more points we store, the more precise and expensive the sampling is.
+Audio retrieving has the following problems:
+\begin{enumerate}
+    \item Identification of the most useful acoustic features
+    \item Representation of the acoustic features
+    \item Matching of acoustic features
+\end{enumerate}
+The first approaches were based on the Vector Space Model with vectors representing the weighted presence or absence of acoustic features, while nowadays they are based on advanced matching techniques using neural networks and deep learning. \\
+If audio has been indexed as features vectors, then retrieval can be carried out by comparing them with a mathematical model using a query with the covariance matrix $R^{-1}$:
+\begin{center}
+    $sim(s,q) = ((s-q)^t \cdot R^{-1} \cdot (s-q))$
+\end{center}
+
+\subsection{Speech Indexing and Retrieval}
+Indexing of spoken document is concerned with capturing the semantics of “what has been said” and is performed starting with the following approaches:
+\begin{enumerate}
+    \item Controlled vocabulary indexing
+    \item Ranked retrieval based on associated text
+    \item Social filtering based on other users’ ratings
+    \item Automatic feature-based speech indexing
+\end{enumerate}
+The choice of the features to detect depends on the application:
+\begin{itemize}
+    \item Identity: speaker identification and segmentation $ \rightarrow $ sound
+    \item Language: language, dialect, accent $ \rightarrow $ sound and word spotting
+    \item Measurable characteristics: emotions, environment $ \rightarrow $ sound
+    \item \textbf{Speech content}: phonemes, $n$-best recognition $ \rightarrow $ \textbf{speech}
+\end{itemize}
+Speech is richer than text since it holds some information such as the language, the speaker, and the emotions, thus speech recognition is complex.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{14_2_black_box.png}
+    \caption{Speech recognition as a black box}
+\end{figure}
+The long-term goal of speech recognition systems is to retrieve speaker independent, continuous speech with an almost infinite vocabulary size.
+Speech recognition is difficult because of many reasons:
+\begin{itemize}
+    \item Word boundaries
+    \item Adjacent phonemes influence each other
+    \item The same phoneme cannot be repeated twice without changing its physical representation due to different acoustic conditions
+    \item Ambiguity in phonemic to orthographic transcription
+    \item Out-of-vocabulary words
+\end{itemize}
+While speech recognition is almost a solved problem, Spoken Document Retrieval (SDR) is not. The approaches to SDR are the LVSR approach, the subwords units approach, and the word spotting approach.
+
+\subsubsection{LVSR Approach}
+The \textbf{LVSR} approach creates transcripts of spoken documents using retrieval methods, transforming SDR into textual IR. Thus, it is a valid approach only with a perfect transcription system. It still has the same problem as general IR.
+
+\subsubsection{Subwords Units Approach}
+The \textbf{subwords units} approach analyze either syllable sequences or phoneme sequences.
+In the first case, syllable sequences are treated as indexing features and the procedure is the following:
+\begin{itemize}
+    \item Indexing:
+        \begin{itemize}
+            \item Determine a possible set of features from training text
+            \item Select a subset to use as indexing features
+            \item Perform feature spotting on spoken documents
+        \end{itemize}
+    \item Query: decompose the query and extract the indexing features
+    \item Retrieval: apply $ff(s_j,d_i) \cdot idf(s_j)$ weighting and cosine similarity
+\end{itemize}
+On the other side, the procedure is the following:
+\begin{itemize}
+    \item Phoneme sequences are treated as indexing features:
+        \begin{itemize}
+            \item Select variable-length sequences
+            \item Perform phonetic recognition on spoken documents
+            \item Process the output to derive possible sequences
+            \item Select a subset to use as indexing features
+        \end{itemize}
+    \item Query: maps the query into phonemes and extract the indexing features
+    \item Retrieval: 
+        \begin{itemize}
+            \item Apply $ff(s_j,d_i) \cdot idf(s_j)$ weighting and cosine
+            \item Matching indexing features in queries and documents
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{Word Spotting Approach}
+The \textbf{word spotting} approach is used for topic identification, topic spotting, and fast identification of potentially relevant segments of
+streaming media. A small set of keywords is treated as indexing features, thus it requires knowledge about document content and queries:
+\begin{itemize}
+    \item Indexing:
+        \begin{itemize}
+            \item Select a set of keywords to spot
+            \item Perform keyword spotting on the spoken documents
+            \item Select the documents based on the presence of keywords combinations
+        \end{itemize}
+    \item Query: select the combination of keywords
+    \item Retrieval:
+        \begin{itemize}
+            \item Apply $ff(s_j,d_i) \cdot idf(s_j)$ weighting and cosine 
+            \item Pattern recognition system
+        \end{itemize}
+\end{itemize}
+
+\subsection{Image Indexing and Retrieval}
+There exist three main approaches in \textbf{image indexing and retrieval}:
+\begin{itemize}
+    \item Keyword based: manual, semi-manual, and automatic
+    \item Visual properties based: fully automatic
+    \item Concept based: mostly manual
+\end{itemize}
+
+\subsubsection{Keyword Based Approach}
+In the \textbf{keyword based} approach, images are annotated using keywords. Since images descriptions are textual, we could use standard IR techniques. Keywords are assigned to an image by analyzing the text associated with it. This approach has some problems: manual annotation is expensive and subjective and low level visual properties are almost impossible to index.
+
+\subsubsection{Visually Based Approach}
+Usually referred to as Content Based Image Retrieval (CBIR), the \textbf{visually based} approach computes the similarity between query and documents on visual features such as texture and shape which are automatically or semi-automatically detected. Images are represented using \textbf{feature vectors}:
+\begin{center}
+    $If_i \ = \ (If_{i1}, \ \dots, \ If_{in})$
+\end{center}
+and queries are represented with the same set:
+\begin{center}
+    $Qf_i \ = \ (Qf_{i1}, \ \dots, \ Qf_{in})$.
+\end{center}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{15_1_features.png}
+    \caption{Matching example}
+\end{figure}
+This approach uses a form of query-by-example with a specific similarity function which should be a good approximation of human perception and should have properties to speed up computations.
+Let's see how to handle each feature set:
+\begin{itemize}
+    \item \textbf{Color based retrieval}
+        \begin{enumerate}
+            \item Represent the image as a rectangular pixel raster
+            \item Represent each pixel as a quantified color
+            \item Count the number of pixels in each color bin
+            \item Compute vector similarity (normalized inner product)
+        \end{enumerate}
+    \item \textbf{Texture matching}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=5.5cm]{15_2_textures.png}
+            \caption{Texture matching example}
+        \end{figure}
+    \item \textbf{Image segmentation} (color and texture characterize objects and not images)
+        \begin{enumerate}
+            \item Segment at color and texture discontinuities
+            \item Represent shape and orientation of objects
+            \item Represent relative positions of objects
+            \item Perform rotation-invariant and scale-invariant matching
+        \end{enumerate}
+\end{itemize}
+The most common example of image segmentation is the \textbf{blobworld}, in which complex queries are formulated based on the selection of visual features.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{15_3_blobs.png}
+    \caption{Blobworld segmentation example}
+\end{figure}
+
+\subsubsection{Concept Based Approach}
+In \textbf{concept based} approach, the system automatically captures the most important conceptual features of an image. More specifically, the system assigns index terms to a part of the image.
+This approach has a couple of problems: the automatic concept assignment is imprecise and ambiguous and the manual concept assignment is highly subjective. Moreover, knowledge of the application domain is required.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{15_4_concept.png}
+    \caption{Concept based approach}
+\end{figure}
+
+\subsection{Video Indexing and Retrieval}
+Video indexing and retrieval can be divided into three processes:
+\begin{enumerate}
+    \item Video segmentation
+    \item Non-sequential browsing
+    \item Content-based indexing
+\end{enumerate}
+
+\subsubsection{Video segmentation}
+\textbf{Video segmentation} splits a video into scenes, then into shots, and finally into frames. A \textbf{shot} is a sequence of frames recorded in one camera operation, and a scene is a collection of semantically related shots.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{15_5_video.png}
+    \caption{Video segmentation representation}
+\end{figure}
+\textbf{Shot Boundary Detection} (\textbf{SBD}) takes all the frames extracted from a video and then creates shots depending on those frames. This is a complex technique since it is hard and expensive to determine the many input parameters and the accuracy varies from 20\% to 80\%
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{15_6_sbd.png}
+    \caption{SBD representation}
+\end{figure}
+The easiest SBD technique is performed via frame similarity:
+\begin{enumerate}
+    \item Take two frames in the input
+    \item Create the color histograms
+    \item Concatenate the histograms to form the frame color signature
+    \item Use cosine similarity measure to get frames similarity
+\end{enumerate}
+
+\subsubsection{Non-sequential Browsing}
+Since video browsing, meaning the visual inspection of videos, is time-consuming, videos are structured in terms of shots and scenes to \textbf{browse non-sequentially}. A scene hierarchy allows browsing and retrieving at various semantic levels. The video structuring procedure is the following:
+\begin{enumerate}
+    \item Segment the video
+    \item Group shots into scenes
+    \item Generate a scene hierarchy according to the content
+\end{enumerate}
+The size and shape of a scene tree are determined by the complexity of the video.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{15_7_tree.png}
+    \caption{Scene tree and keyframes}
+\end{figure}
+
+\subsubsection{Content-based Indexing}
+Since a video is a combination of lots of features, in \textbf{content-based indexing} we must combine different detectors such as text features, visual features, and audio features. The following are some techniques that can be combined for content-based indexing:
+\begin{itemize}
+    \item Indexing by color: images containing the same colors
+    \item Indexing by shape: images containing the same shapes
+    \item Indexing by content: images containing the same content but with different shapes and colors
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{15_8_combination.png}
+    \caption{Combination of different features}
+\end{figure}
+
+% ------------------------------------ %
+% Appendix A - Introduction to Scrappy
+% ------------------------------------ %
+\section{Appendix A - Introduction to Scrappy}
+\subsection{Web Crawling and Scraping}
+\textbf{Web crawling} consists of automatically downloading a web page's data, extracting the hyperlinks it contains and following them, while
+\textbf{Web scraping} consists of automatically downloading a Web page's content and extracting specific information from it. \\
+With too many requests the server could become overloaded, banning the crawler IP address, but there exist some precaution steps:
+\begin{itemize}
+    \item respect robots.txt files, which contain information on what is allowed to crawl and what's not
+    \item limit the number of requests per second
+    \item identify yourself and use proxies
+\end{itemize}
+\subsection{What is Scrapy}
+\textbf{Scrapy} is an application framework for crawling websites and extracting structured data, with a large variety of features: 
+\begin{itemize}
+    \item cookies and session handling
+    \item HTTP compression, authentication, caching
+    \item user-agent spoofing
+    \item robots.txt files
+    \item crawl depth restrictions 
+\end{itemize}
+\subsubsection{Installation Guide}
+\begin{enumerate}
+    \item
+    \begin{verbatim} python3 -m venv my\_env \end{verbatim}
+    \item
+    \begin{verbatim} source my\_env/bin/activate \end{verbatim}
+    \item
+    \begin{verbatim} pip install Scrapy \end{verbatim}
+\end{enumerate}
+\subsubsection{Commands}
+\begin{itemize}
+    \item
+    \begin{verbatim} scrapy startproject *project_name* \end{verbatim}: creates a new project
+    \item
+    \begin{verbatim} scrapy runspider *spider_name* -o *output_file* \end{verbatim}: run the spider
+    \item 
+    \begin{verbatim} view(response) \end{verbatim}: opens the web page in the browser
+\end{itemize}
+
+% --------------------------------- %
+% Appendix B - Introduction to Solr
+% --------------------------------- %
+\section{Appendix B - Introduction to Solr}
+\textbf{Solr} is an open-source search platform and the most used IR library.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{solr.png}
+    \caption{Solr working}
+\end{figure}
+\subsection{Commands}
+\begin{itemize}
+    \item
+    \begin{verbatim} bin/solr start -e cloud \end{verbatim}: creates a new server
+    \item
+    \begin{verbatim} bin/post -c <collectionName> <docsCollection>/* \end{verbatim}: index documents
+    \item 
+    \begin{verbatim} view(response) \end{verbatim}: opens the web page in the browser
+\end{itemize}
+
+\end{document}
