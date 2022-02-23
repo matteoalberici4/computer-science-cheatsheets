@@ -1,0 +1,574 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts, amsmath, enumitem, float, graphicx, hyperref}
+
+\title{Artificial Intelligence - Notes}
+\author{Matteo Alberici}
+\date{January 2022}
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+% ------------------------------------- %
+% Section 1: Search Problems Definition %
+% ------------------------------------- %
+\section{Search Problems}
+In order to define a \textbf{search problem}, we need to introduce the following terms:
+\begin{itemize}
+    \item \textbf{States}: the set of possible configurations
+    \item \textbf{Initial state}: the state where the search starts
+    \item \textbf{Actions}: the set of possible actions
+    \item \textbf{Goal}: the destination of the search
+    \item \textbf{Cost function}: gives a cost to the solution path
+\end{itemize}
+\subsection{Graph Definition}
+A search problem is modelled as a \textbf{graph} having the following finite sets:
+\begin{center}
+    \textbf{nodes}: $(n_1, n_2, ..., n_n)$ \\
+    \vspace{0.2cm}
+    \textbf{edges}: $((n_i, n_j), ..., (n_k, n_n))$
+\end{center}
+Given a direct edge $(n_i, n_j)$, we say that $n_j$ is a \textbf{child} of $N_i$. If a node has no children, then it is a \textbf{leaf}. \\
+A \textbf{path} $(n_i, n_{i+1}, ..., n_n)$ is a sequence with each couple $n_i, n_{i+1}$ being an edge. If a path contains the same node more times, then it is a \textbf{cycle}. \\
+A graph is \textbf{rooted} when a node $n_i$ is the origin of all the paths. Moreover, two nodes are \textbf{connected} if there exists a path from one to the other.
+\subsection{Search Algorithms}
+\textbf{Search algorithms} take as input a state space and a starting state, then tries to compute a path producing a search tree. The strategy consists of searching which node to add to the \textbf{fringe} and \textbf{expand}, considering all nodes reachable in one action from the current one.
+\subsection{Search Tree}
+A node in the \textbf{search tree} has five components:
+\begin{itemize}
+    \item The state
+    \item The node that generated it
+    \item The action that generates it
+    \item The depth of the tree
+    \item The cost of the path from the root
+\end{itemize} 
+\subsection{General Search Algorithm}
+The following is the procedure of a \textbf{general search algorithm} which takes as input a problem and a strategy and returns a sequence of operators that brings to the goal:
+\begin{enumerate}
+    \item Initialize the search tree
+    \item Push the root node to the fringe
+    \item Start the loop
+    \item If the fringe is empty, then return failure
+    \item Choose the next node according to a strategy
+    \item If the node is the goal, then return the solution
+    \item Expand the node 
+    \item Add the children to the fringe
+\end{enumerate}
+\subsection{Evaluation of Search Strategies}
+The strategy determines the order of expansion and is evaluated according to the following criteria:
+\begin{itemize}
+    \item \textbf{Completeness}: does it always find a solution if it exists?
+    \item \textbf{Space Complexity}: how much memory does it require?
+    \item \textbf{Time Complexity}: how long does it take to find a solution?
+    \item \textbf{Optimality}: does it guarantee the least-cost solution?
+\end{itemize}
+Time and space complexities are measured in terms of the maximum branching factor $b$, the depth of the least-cost solution $d$, and the maximum depth of the tree $m$. \\
+\textbf{Polynomial-time algorithms} solve problems in a time growing polynomially with the input size. If such an algorithm does not solve the problem, then the problem is a \textbf{nondeterministic-polynomial time problem}.
+
+\newpage
+
+% ---------------------------------- %
+% Section 2: Blind Search Algorithms %
+% ---------------------------------- %
+\section{Blind Search Algorithms}
+\textbf{Blind search algorithms} use non informed search strategies.
+% Algorithm 1: Breadth-first Search %
+\subsection{Breadth-first Search Algorithm}
+The \textbf{breadth-first search algorithm} expands the shallowest unexpanded node using a \textbf{FIFO} queue: nodes at distance $d$ are expanded before nodes at distance $d + 1$. \\
+The procedure of the algorithm is the following:
+\begin{enumerate}
+    \item Push the root node to the fringe
+    \item If the fringe is empty, then return failure
+    \item Remove the first node $n$ from the fringe
+    \item If $n$ is the goal, then return the solution
+    \item If $n$ is in the explored list, then repeat from step 2
+    \item Expand $n$ 
+    \item Add the children at the end of the fringe
+    \item Add $n$ to the explored list
+    \item Repeat from step 2
+\end{enumerate}
+\vspace{0.2cm}
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Completeness: yes
+    \item Space Complexity: $O(b^d)$ - all nodes until goal depth are created  
+    \item Time Complexity: $O(b^d)$ - all nodes until goal depth are created  
+    \item Optimality: yes, if all steps have the same cost $g(n) = k \cdot depth(n)$
+\end{itemize}
+\newpage
+% Algorithm 2: Uniform Cost Search %
+\subsection{Uniform Cost Search Algorithm}
+The \textbf{uniform cost search algorithm} associates a cost $g(n)$ to each node and expands the one with the lowest $g(n)$ in the fringe, which is kept sorted in increasing cost order. \\
+The procedure of the algorithm is the following:
+\begin{enumerate}
+    \item Push the root node to the fringe
+    \item If the fringe is empty, then return failure
+    \item Remove the first node $n$ from the fringe
+    \item If $n$ is the goal, then return the solution
+    \item If $n$ is in the explored list, then repeat from step 2
+    \item Expand $n$
+    \item Add the children not in the explored list to the fringe
+    \item Sort the fringe by the path cost
+    \item Add $n$ to the explored list
+    \item Repeat from step 2
+\end{enumerate}
+If $g(n)$ is equal to the depth of node $n$, then the procedure is the same of the breadth-first search algorithm. \\
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Completeness: yes, if the step cost $\geq \epsilon > 0$
+    \item Space Complexity: $O(b^d)$, number of nodes with $g(n) \leq g(\text{solution})$
+    \item Time Complexity: $O(b^d)$, number of nodes with $g(n) \leq g(\text{solution})$
+    \item Optimality: yes, if all costs are non-negative
+\end{itemize}
+\newpage
+% Algorithm 3: Depth-first Search %
+\subsection{Depth-first Search Algorithm}
+The \textbf{depth-first search algorithm} expands a node generated in the previous step using a \textbf{LIFO} queue. \\
+The procedure of the algorithm is the following:
+\begin{enumerate}
+    \item Push the root node to the fringe
+    \item If the fringe is empty, then return failure
+    \item Remove the first node $n$ from the fringe
+    \item If $n$ is the goal, then return the solution
+    \item If $n$ is in the explored list, then repeat from step 2
+    \item Expand $n$
+    \item Add the children not in the explored list to the beginning of the fringe
+    \item Add $n$ to the explored list
+    \item Repeat from step 2
+\end{enumerate}
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Completeness: no, it could proceed to infinity
+    \item Space Complexity: $O(b \cdot m)$
+    \item Time Complexity: $O(b^m)$
+    \item Optimality: no, cannot be sure the first goal is the optimal one
+\end{itemize}
+\newpage
+% Algorithm 4: Depth-limited Search %
+\subsection{Depth-limited Search Algorithm}
+The \textbf{depth-limited search algorithm} offers a solution to the completeness problem of the depth-first search algorithm by taking a parameter $deep$ in input. \\
+The procedure of the algorithm is the following:
+\begin{enumerate}
+    \item Push the root node to the fringe
+    \item If the fringe is empty, then return failure
+    \item Remove the first node $n$ from the fringe
+    \item If $n$ is the goal, then return the solution
+    \item If $n$ not\_in(closed) and $d(n) < deep$, go ahead; otherwise repeat from step $2$
+    \item Expand $n$
+    \item Add the children not in the explored list to the beginning of the fringe
+    \item Add $n$ to the explored list
+    \item Repeat from step 2
+\end{enumerate}
+We can only reach solutions that are at distance $deep$ and we need knowledge to set a fixed $deep$. \\
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Completeness: yes, if we know a bound to the solution depth
+    \item Space Complexity: $O(b \cdot deep)$
+    \item Time Complexity: $O(b^{deep})$
+    \item Optimality: no
+\end{itemize}
+% Algorithm 5: Iterative-deepening Search %
+\subsection{Iterative-deepening Search Algorithm}
+The \textbf{iterative-deepening search algorithm} is a depth-limited search where the depth is incremented step by step. \\
+The procedure of the algorithm is the following:
+\begin{enumerate}
+    \item Loop for depth $= 0$ to $\infty$
+    \item If Depth-Limited-Search(root, deep) $==$ solution, then return the solution
+    \item Return failure
+\end{enumerate}
+It is the best compromise between breadth-first search and depth-first search. \\
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Completeness: yes, if we know a bound to the solution depth
+    \item Space Complexity: $O(b \cdot d)$
+    \item Time Complexity: $O(b^d)$
+    \item Optimality: yes, if all costs are non-negative
+\end{itemize}
+\newpage
+% Algorithm 6: Bidirectional Search %
+\subsection{Bidirectional Search}
+A problem related to search is its direction: in forward search, we start from the initial state and proceed to the goal, while in backward search, we start from the goal and go back to the initial state. The \textbf{bidirectional search algorithm} proceeds in both directions until the queues contain a common node. \\
+The procedure of the algorithm is the following:
+\begin{enumerate}
+    \item Initialize two queues, one for forward and one for backward search
+    \item Remove the first path from both the queues
+    \item Create new paths to the children
+    \item Reject a path if it contains a cycle
+    \item Add the new paths to the queues
+    \item Repeat from step 2 until the queues are not empty and do not share a node
+    \item If the queues do not share a node, then return the solution
+    \item Return Failure
+\end{enumerate}
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Completeness: yes
+    \item Space Complexity: $O(b^{d/2})$
+    \item Time Complexity: $O(b^{d/2})$
+    \item Optimality: yes
+\end{itemize}
+
+\newpage
+
+% -------------------------------------- %
+% Section 3: Heuristic Search Algorithms %
+% -------------------------------------- %
+\section{Heuristic Search Algorithms}
+Exhaustive blind search is not applicable for problems with exponential complexity. \textbf{Heuristic search algorithms} use problem specific strategies with some knowledge and experience to identify the most promising paths. These algorithms do not guarantee completeness and optimality, but find a good solution in a short time.
+\subsection{Heuristic Evaluation}
+The \textbf{heuristic evaluation} estimates the distance from a state to the goal:
+\begin{center}
+    $h : s \rightarrow R \ \ $ such that $\ \ h(goal) = 0$
+\end{center}
+\subsubsection{Admissible Heuristic}
+In \textbf{admissible heuristic}, the cost estimated to reach the goal is not higher than the lowest possible cost from the current node. Given a node $n$, a cost $h(n)$ from $n$ to the goal, an optimal cost $h*(n)$ from $n$ to the goal, then we have the following relation: 
+\begin{center}
+    $\forall n \ | \ h(n) \leq h*(n)$
+\end{center}
+\subsubsection{Monotonic Heuristic}
+In \textbf{monotone heuristic}, for each node $n$ and its successor $n'$, the estimated cost of reaching the goal from a node $n$ is no longer greater than the step cost of getting its successor $n'$ plus the estimated cost of reaching the goal from $n'$. \\
+Let $f(n)$ be the cost from the root to node $n$ plus the cost estimation from $n$ to the goal, then we have the following relation:
+\begin{center}
+    $f(n) \leq f(n')$
+\end{center}
+All monotonic heuristics guarantee local optimality and are admissible, but not all admissible heuristics are monotonic.
+\newpage
+% Algorithm 7: Best-first Search %
+\subsection{Best-first Search Algorithm}
+The \textbf{best-first search algorithm} evaluates each node estimating its distance to the goal, then sorts the fringe according to the estimated distances: the node with the best heuristic value is expanded. \\
+The procedure of the algorithm is the following:
+\begin{enumerate}
+    \item Push the root node to the fringe
+    \item If the fringe is empty, then return failure
+    \item Remove the first node $n$ from the fringe
+    \item If $n$ is the goal, then return the solution
+    \item If $n$ is in the explored list, then repeat from step $2$
+    \item Expand $n$
+    \item Add the children not in the explored list to the fringe
+    \item Add $n$ to the explored list
+    \item Sort the fringe based on the heuristic values
+    \item Repeat from step 2
+\end{enumerate}
+All nodes on the border are kept in memory. An alternative is represented by the beam-search algorithm that keeps in memory only the $k$ states with the best evaluation, where $k$ is the search radius. \\
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Completeness: no
+    \item Space Complexity: $O(b^{m})$
+    \item Time Complexity: $O(b^{m})$
+    \item Optimality: no
+\end{itemize}
+\newpage
+% Algorithm 8: A* %
+\subsection{A* Algorithm}
+A algorithms are best-first search algorithms with an evaluation function:
+\begin{center}
+    $f(n) = g(n) + h(n)$, where $h(n) \geq 0$ and $h(goal) = 0$
+\end{center}
+There exist some particular cases:
+\begin{itemize}
+    \item if $f(n) = g(n)$, then it performs a uniform search
+    \item if $f(n) = g(n) = depth(n)$, then it performs a breadth-first search
+    \item if $f(n) = h(n)$, then it performs a greedy best first search
+\end{itemize}
+\textbf{A* algorithm} is an A algorithm with an admissible heuristic function:
+\begin{center}
+    $f*(n) = g*(n) + h*(n)$, where:
+\end{center}
+\begin{itemize}
+    \item $f*(n) =$ estimated cost of the path from the root to the goal
+    \item $g*(n) =$ cost of the path from the root to node $n$
+    \item $h*(n) =$ estimated cost of the path from node $n$ to the goal
+\end{itemize}
+The algorithm expands the node with the smallest $f*(n)$. All nodes are kept in memory. \\
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Completeness: yes, unless there are infinite nodes with $f \leq f(G)$
+    \item Space Complexity: $O(b^m)$
+    \item Time Complexity: $O(b^m)$
+    \item Optimality: given a goal $p$
+        \begin{enumerate}
+            \item Assume that a path $p'$ is the shortest path to the goal
+            \item Consider that a partial path $p''$ of $p'$ is on the fringe
+            \item Since $p$ is expanded before $p''$, then we have:
+                \begin{center}
+                    $f(p) \leq f(p'')$
+                \end{center}
+            \item Since $p$ is a goal, then:
+                \begin{center}
+                    $g(p) \leq g(p'') + h(p'') $
+                \end{center}
+            \item Since $h$ is admissible, then for any path $p'$ that extends $p''$:
+                \begin{center}
+                    $g(p'') + h(p'') \leq g(p')$
+                \end{center}
+            \item Finally, for any path $p'$ to a goal:
+                \begin{center}
+                    $g(p) \leq g(p')$,
+                \end{center}
+                which contradicts point $1$.
+        \end{enumerate}
+\end{itemize}
+
+\newpage
+
+% ----------------------------------------- %
+% Section 4: Constructive Greedy Algorithms %
+% ----------------------------------------- %
+\section{Constructive Greedy Algorithms}
+\textbf{Constructive greedy algorithms} take a data set and fastly produce a feasible solution through the following procedure:
+\begin{enumerate}
+    \item Start from a random node $n$
+    \item Expand $n$
+    \item Choose the next node according to a local strategy
+    \item Extend the solution with the new node, which becomes the new $n$
+    \item Repeat from step $2$ until a feasible solution is computed
+\end{enumerate}
+% Algorithm 9: Nearest Neighbors %
+\subsection{Nearest Neighbors Algorithm}
+\textbf{Nearest neighbors algorithm} is one of the most common algorithms used to solve TSP problems. \\
+Given $n$ cities, the algorithm performs the following procedure, 
+\begin{enumerate}
+    \item Consider a starting tour consisting of a random city $c_i$
+    \item Add the closest new city $c_{i+1} $ to the tour
+    \item Repeat step $2$ until no new cities are available
+\end{enumerate}
+The algorithm is not very efficient: the first edges are short while the final ones are long and the length of the tour with respect to the optimal tour length grows following a $log(n)$ formula. \\
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Completeness: no
+    \item Space Complexity: $O(n^2)$
+    \item Time Complexity: $O(n^2)$
+    \item Optimality: no, cannot guarantee optimality
+\end{itemize}
+\newpage
+% Algorithm 10: Multi Fragment %
+\subsection{Multi Fragment Algorithm}
+\textbf{Multi fragment algorithm} starts with the shortest edge and add the others in increasing order only if they do not create a $3-$degree city. \\
+The procedure of the algorithm is the following:
+\begin{enumerate}
+    \item Sort the edge costs in ascending order
+    \item Consider a tour with the the first edge
+    \item Add a new edge in incremental order only if it does not create a cycle
+    \item Repeat step $3$ until no edge is available
+\end{enumerate}
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Space Complexity: $O(n^2log(n))$
+    \item Time Complexity: $O(n^2log(n))$
+    \item Optimality: no, cannot guarantee optimality
+\end{itemize}
+% Algorithm 11: Nearest Insertion %
+\subsection{Nearest Insertion Algorithm}
+Given $n$ cities, the \textbf{nearest insertion algorithm} performs the following procedure:
+\begin{enumerate}
+    \item Build an initial tour formed by the nearest cities
+    \item Choose a new node such that the Euclidean distance between it and two other nodes in the tour is minimum
+    \item Insert the new node between the two nodes of the tour
+    \item Repeat from step $2$ until no new nodes are available
+\end{enumerate}
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Space Complexity: $O(n^2)$
+    \item Time Complexity: $O(n^2)$
+    \item Optimality: no, cannot guarantee optimality
+\end{itemize}
+\newpage
+% Algorithm 12: Farthest Insertion %
+\subsection{Farthest Insertion Algorithm}
+Given $n$ cities, the \textbf{farthest insertion algorithm} performs the following procedure:
+\begin{enumerate}
+    \item Build an initial tour formed by the farthest cities
+    \item Choose a new node such that the Euclidean distance between it and two other nodes in the tour is maximum
+    \item Insert the new node between the two nodes of the tour
+    \item Repeat from step $2$ until no new nodes are available
+\end{enumerate}
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Space Complexity: $O(n^2)$
+    \item Time Complexity: $O(n^2)$
+    \item Optimality: no, cannot guarantee optimality
+\end{itemize}
+
+\newpage
+
+% ----------------------- %
+% Section 5: Local Search %
+% ----------------------- %
+\section{Local Search Algorithms}
+\textbf{Local search algorithms} optimize solutions through the following procedure:
+\begin{enumerate}
+    \item Start from a complete solution
+    \item Compute the best edge exchange that improves the solution
+    \item Execute the edge exchange
+    \item Repeat from step $2$ until no improvement is possible
+\end{enumerate}
+% Algorithm 13: Hill Climbing %
+\subsection{Hill Climbing Algorithm}
+Given a set of solutions $A$ and the following objective function $f$:
+\begin{center}
+    $\{f(s) \ | \ s \in A \}$,
+\end{center}
+then, we define a neighborhood function $N$ that computes a subset of solutions $N(s)$ for each solution $s \in A$:
+\begin{center}
+    $A \ \rightarrow \ 2^A$,
+\end{center}
+The \textbf{hill climbing algorithm} explores the neighborhood searching for a better solution. \\
+We can perform two different types of search: a greedy search and a simplified version. In the greedy search, if the best solution in $N(current)$ is better than the actual best, then we restart from current, otherwise we stop. In the simplified version, as soon as we find a better neighborhood we continue the search from the associated solution, avoiding to visit all the neighborhoods. \\
+The procedure of the algorithm is the following:
+\begin{verbatim}
+    function Hill-Climbing(s, f, N):
+        current = s
+        while terminating condition is met:
+            next = best solution in N(current)
+            if f(next) < f(current):
+                current = next
+        return current
+\end{verbatim}
+\newpage
+% Algorithm 14: 2-opt %
+\subsection{2-opt Algorithm}
+The \textbf{2-opt algorithm} removes crossings in the solution path by reversing the path between two nodes. The implementation of the \textbf{2-opt algorithm} is the following:
+\begin{verbatim}
+    function 2-Opt():
+        while best_gain != 0:
+            best_gain = 0
+            for i = 1 to n:
+                for j = 1 to n:
+                    gain = Compute-Gain(i,j)
+                    if (gain < best_gain):
+                        best_gain = gain
+                        best_i = i
+                        best_j = j
+                        if first_improvement == true:
+                            break
+                if (best_gain < 0 && first_improvement == true):
+                    break
+            Exchange(best_i, best_j)        
+\end{verbatim}
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Space Complexity: $O(n^2)$
+    \item Time Complexity: $O(n^2)$
+\end{itemize}
+% Algorithm 15: 2.5-opt %
+\subsection{2.5-opt Algorithm}
+The \textbf{2.5-opt algorithm} performs the 2-opt algorithm procedure and check for two possible node shifts. A shift consists of moving a node to another position in the tour.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{Screen Shot 2022-01-28 at 18.11.07.png}
+\end{figure}
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Space Complexity: $O(n^2)$
+    \item Time Complexity: $O(n^2)$
+\end{itemize}
+\newpage
+% Algorithm 16: 3-opt %
+\subsection{3-opt Algorithm}
+The \textbf{3-opt algorithm} removes three links form the tour, obtaining three segments with which we check for 2-opt swaps and node shifts.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{2.png}
+\end{figure}
+The algorithm is evaluated as follows:
+\begin{itemize}
+    \item Space Complexity: $O(n^3)$
+    \item Time Complexity: $O(n^3)$
+    \item Optimality: TODO
+\end{itemize}
+
+\newpage
+
+% -------------------------------- %
+% Section 6: Meta-heuristic Search %
+% -------------------------------- %
+\section{Meta-heuristic Search Algorithms}
+Local search algorithms cannot escape from a local minimum and they are inefficient with large neighborhoods, thus either we accept solutions that are worst than the previous, or stochastically explore only a subset of a neighborhood through \textbf{meta-heuristic search algorithms}. \\
+Meta-heuristic search algorithms have the following implementation:
+\begin{verbatim}
+    function Meta-Heuristic-Search(s, f, N):
+        current = s
+        while terminating condition is met:
+            stochastically compute next in N(current)
+            Decide whether to continue with current = next
+        return current
+\end{verbatim}
+% Algorithm 17: Simulated Annealing %
+\subsection{Simulated Annealing Algorithm}
+The \textbf{simulated annealing algorithm} is inspired by the natural annealing of metals and has the following procedure:
+\begin{enumerate}
+    \item Start from an initial solution
+    \item Choose a random new solution from the neighborhood of the previous
+        \begin{itemize}
+            \item If $f(next) < f(current)$, then $f(next)$ becomes the current node
+            \item Otherwise, given a temperature $T$, we use the following probabilistic function:
+                \begin{center}
+                    $\Delta E = f(next) - f(current)$ \\
+                    $e^{-\frac{\Delta E}{T}}$
+                \end{center}
+        \end{itemize}
+    \item Repeat from step $2$ until the solution converges
+\end{enumerate}
+Given a value $\beta = [1, 100]$, then the steps $L$ from one temperature to the next are computed as follows:
+\begin{center}
+    $L=\beta \cdot NN_length$
+\end{center}
+Given the number of nodes $n$, then the temperature $T$ is initialized as follows:
+\begin{center}
+    $T = \displaystyle\frac{L}{\sqrt{n}}$
+\end{center}
+Given a value $\alpha \approx 0.95$, then $T$ decreases during the search as follows:
+\begin{center}
+    $T_{i + 1} = T \cdot \alpha$
+\end{center}
+
+\newpage
+
+% ----------------------------- %
+% Section 7: Genetic Algorithms %
+% ----------------------------- %
+\section{Genetic Algorithms}
+\textbf{Genetic algorithms} are based on Darwin's evolution theory: individuals are described by chromosomes, which are sets of genes; populations are sets of individuals; generations are sets of populations. \\
+Individuals are evaluated using a \textbf{fitness function} representing their adaptation to the environment. \\
+
+
+
+Genetic algorithms have the following implementation:
+\begin{verbatim}
+    function Genetic-Algorithms():
+        t = 0
+        initialize P(t) with m individuals
+        evaluate P(t)
+        while terminating condition is not met:
+            select parents from P(t)
+            generate individuals with reproduction rules
+            some individuals die in P(t)
+            form population P(t + 1)
+            evaluate population P(t + 1)
+            t = t + 1
+        return best individual
+\end{verbatim}
+% Algorithm 18: Ant Colony %
+\subsection{Ant Colony Algorithm}
+The basic principle of the \textbf{ant colony algorithm} is \textbf{stigmergy}, meaning a particular kind of indirect communication through which ants find the shortest paths in dynamic environments:
+\begin{itemize}
+    \item While moving between nest and food, ants mark their path by pheromone laying
+    \item Step-by-step decisions are biased by stigmergy
+\end{itemize}
+Pheromone is the colony’s collective and distributed memory: it encodes the quality of local routing choices towards the destination target. \\
+The implementation of the algorithm is the following:
+\begin{verbatim}
+    function Ant-Colony():
+        while terminating condition is not met:
+            randomly position m ants on n cities
+            for city = 1 to n:
+                for ant = 1 to m:
+                    select next city through exploration and exploitation
+                    apply local trail updating rule
+                compute length l of tour generated by m
+            apply global trail updating rule using best ant
+\end{verbatim}
+\end{document}
