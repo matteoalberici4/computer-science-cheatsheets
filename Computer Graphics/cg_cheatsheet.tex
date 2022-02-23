@@ -1,0 +1,1102 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb, graphicx, float, hyperref, mathtools}
+\usepackage[dvipsnames]{xcolor}
+%, amsmath, ,, nccmath, sectsty, }
+
+\title{Computer Graphics - Notes}
+\author{Matteo Alberici}
+\date{January 2022}
+
+\begin{document}
+\maketitle
+\newpage
+\newpage
+\tableofcontents
+\newpage
+
+% ------------------------ %
+% Chapter 1 - Introduction
+% ------------------------ %
+\section{Introduction}
+\textbf{Computer graphics} deals with generating images with the aid of computers and has four main branches: 
+\begin{itemize}
+    \item \textbf{Rendering}: shading, raytracing, and photon mapping
+    \item \textbf{Geometry Processing and Modelling}: description and manipulation of surfaces
+    \item \textbf{Animation and Simulation}: physically "correct" behaviours reproduction
+    \item \textbf{Scientific Visualization}: graphical representation of data
+\end{itemize}
+Three paradigms exist about computer graphics:
+\begin{itemize}
+    \item \textbf{Raytracing}: represents complex scenes with photorealistic quality and "real" global effects, but it is expensive and targets offline applications
+    \item \textbf{Rasterization}: represent efficiently real time applications with "fake" global effects
+    \item \textbf{Image-based rendering}: creates novel views by combining images (Neural rending)
+\end{itemize}
+
+\newpage
+
+% ----------------------------- %
+% Chapter 2 - Raytracing Basics
+% ----------------------------- %
+\section{Raytracing Basics}
+\subsection{Ray Casting}
+\textbf{Ray casting} determines the color of all pixels of an image: a \textbf{ray} is traced from a \textbf{camera} to a \textbf{scene} passing through an \textbf{image} full of pixels, copying the color of the intersected object on the correspondent pixel on the image.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=10cm]{Figure 1 - Ray Casting.png}
+    \caption{Ray casting representation}
+\end{figure}
+\subsection{Whitted Ray Tracing}
+In \textbf{whitted ray tracing}, one \textbf{primary ray} per pixel is traced, then for each of them:
+\begin{enumerate}
+    \item Find the intersection with the scene
+    \item Consider generating \textbf{secondary rays} recursively:
+        \begin{itemize}
+            \item Shadow rays
+            \item Reflection rays
+            \item Refraction rays
+        \end{itemize}
+    \item Color the pixel with the aggregated result 
+\end{enumerate}
+A ray terminates when it leaves the scene without hitting any object, when the maximal recursion depth is reached, or finally when the contribution to the final color is negligible.
+\newpage
+\subsection{Raytracing Computation}
+\subsubsection{Camera and Image Definitions}
+The camera is located at coordinates $(0,0,0)$ and creates an opening angle $\alpha$.
+The image is on a plane with $z = 1$ and has a resolution of $w\cdot s \times h\cdot s$, where $s$ represents the dimensions of a pixel and is computed as follows:
+\begin{center}
+    $ s = \displaystyle\frac{2 \cdot tg(\displaystyle\frac{\alpha}{2})}{w} $
+\end{center}
+Each pixel has coordinates $p_{ij} = (x_{ij}, y_{ij}, z_{ij})$.
+\subsubsection{Ray Computation}
+Given the ray origin $o \in \mathbb{R}^3$, the distance $t$ between $o$ and the intersection, and the ray direction $d$, then a ray is defined as follows:
+\begin{center}
+    $\gamma(t) = o + t \cdot d$,
+\end{center}
+
+\subsubsection{Per-Pixel Computation}
+Let's start by the top-left corner with coordinates $ (X, Y, 1) $, where $ X $ and $ Y $ are computed as follows:
+\begin{center}
+    $ X = \displaystyle\frac{- w \cdot s}{2} \ \ \ \ \ \ \ Y = \displaystyle\frac{h \cdot s}{2} $
+\end{center}
+The loop for computing the \textbf{per-pixel direction} $ d $ is the following:
+\begin{verbatim}
+    for i = 0 to w - 1
+        for j = 0 to h - 1
+            dx = X + i * s + 0.5 * s
+            dy = Y - j * s - 0.5 * s
+            dz = 1
+            d = d / ||d||
+\end{verbatim}
+\newpage
+\subsubsection{Ray-Sphere Intersection}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 2 - Intersections.png}
+    \caption{Intersection points on a sphere}
+\end{figure}
+The scene holds some objects such as a sphere with center $c$ and ray $r$. The ray intersects the sphere if there exists some $t$ such that:
+\begin{center}
+    $||\gamma(t) - c|| = r $
+\end{center}
+There exist two methods for computing the intersection points $t_1$ and $t_2$. \\ 
+The first method consists in computing points $t_1$ and $t_2$ as follows:
+\begin{center}
+    $t_{1,2} = \langle d,c\rangle \pm \sqrt{\langle d,c\rangle^2 - ||c||^2 + r^2} $
+\end{center}
+Furthermore, depending on their sign, we obtain a solution:
+\begin{itemize}
+    \item $ t_1, t_2 < 0 $: the sphere is located behind the ray
+    \item $ t_1 \ xor \ t_2 < 0 $: the ray origin is inside the sphere, therefore there is only one point of intersection
+    \item $ t_1, t_2 > 0 $: there exist two points of intersection
+\end{itemize}
+The second method consists in computing $D$ as follows:
+\begin{center}
+    $ D = \sqrt{||c||^2 - \langle c,d\rangle^2}$
+\end{center}
+Furthermore, we can differ between three cases:
+\begin{itemize}
+    \item $ D < r $: there exist two solutions
+    \item $ D = r $: there exists one solution
+    \item $ D > r $: there exists no solution
+\end{itemize}
+Finally, we can compute points $t_1$ and $t_2$ as follows:
+\begin{center}
+    $t_{1,2} = \langle c,d\rangle \pm \sqrt{r^2 - D^2}$
+\end{center}
+
+% --------------------------- %
+% Chapter 3 - Lighting Models
+% --------------------------- %
+\section{Lighting Models}
+There exists a set of rules for computing \textbf{color values} of objects' surfaces which models the light sources and the surface itself.
+\subsection{Illumination Factors}
+The \textbf{intensity} $I$ of a light source depends on many factors: the object's color and reflective properties, the light's position and intensity, the viewer's position, the \textbf{normal} $n$ of the surface point $p$, and the distance from $p$ to the light.
+\subsection{Phong Lighting Model}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=9cm]{Figure 3 - Phong Model.png}
+    \caption{Phong model factors}
+\end{figure}
+\subsubsection{Diffuse Reflection}
+\textbf{Diffuse reflection} simulates \textbf{Lambertian surfaces} on which light only depends on the light direction $l$ and on the normal $n$ and is reflected evenly in all directions. These surfaces have a material-dependent reflection constant $\rho_d \leq 1$ and follow the \textbf{Lambert's Cosine Law}, which states that the intensity $I_d$ coming from a diffuse reflection is proportional to the cosine of the angle between the normal $n$ and the direction $l$:
+\begin{center}
+    $I_d = \rho_d \ \cdot \langle n,l\rangle \cdot \ I$
+\end{center}
+If $\langle n,l\rangle \ < 0$, then the light source is behind the surface and has an intensity $I = 0$.
+\subsubsection{Ambient Illumination}
+\textbf{Ambient illumination} simulates indirect lightning with multiple reflections between objects and is independent of the light source and the viewpoint. \\ Given a scene constant $I_a$ and a material-dependent reflection constant $\rho_a \leq 1$, the ambient term is computed as follows:
+\begin{center}
+    $ \rho_a \cdot I_a $
+\end{center}
+\subsubsection{Specular Reflection}
+\textbf{Specular reflection} simulates shiny surfaces on which light is reflected in exactly one reflection direction with maximum intensity.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{Figure 4 - Specular Reflection.png}
+    \caption{Specular reflection representation}
+\end{figure}
+\noindent
+The \textbf{reflection vector} $ r $ is computed as follows:
+\begin{center}
+    $ r = 2 \cdot n \ \cdot \langle n,l\rangle - \ l $
+\end{center}
+Finally, given a surface specular coefficient $\rho_s$ and a \textbf{shininess} $k \geq 1$, the specular term $ I_s $ is computed as follows:
+\begin{center}
+    $ I_s = \rho_s \ \cdot \langle v,r\rangle^k \cdot \ I $
+\end{center}
+\subsubsection{Phong Lighting Model Computation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 5 - Lighting Model.png}
+    \caption{Phong lighting model representation}
+\end{figure}
+The \textbf{Phong lightning model} consists of the superposition of diffuse reflection, ambient illumination, and specular reflection. \\
+Given $n$ light sources and a self-emitting intensity $I_e$, the model is defined as follows:
+\begin{center}
+    $ I = I_e + \rho_a \cdot I_a + \displaystyle\sum^n_{j=1}(\rho_d \ \cdot \langle n_j,l_j\rangle + \ \rho_s \ \cdot \langle v,r_j\rangle^k) \cdot I_j  $
+\end{center}
+\newpage
+\subsubsection{Blinn-Phong Specular Reflection}
+In order to simplify the computations for the Phong model, we can use the \textbf{half vector} $ h $:
+\begin{center}
+    $ h = \displaystyle\frac{1}{2} \cdot (l + v) $
+\end{center}
+We can compute the specular term $I_s$ as follows:
+\begin{center}
+    $ I_s = \ p_s \ \cdot \langle n,h\rangle^{4k} \cdot \ I $ 
+\end{center}
+\subsection{Light Sources}
+We can distinguish between three types of light sources: point sources, directional sources, and spot sources.
+\subsubsection{Point Light Sources}
+\textbf{Point light sources} have an intensity $I$ and are specified by their position, from which they radiate evenly.
+\subsubsection{Directional Light Sources}
+\textbf{Directional light sources} consist of an infinite set of point sources and are specified by their direction.
+\subsubsection{Spot Light Sources}
+\textbf{Spot light sources} generate light cones and are specified by their position $p$, their direction $d$, and their opening angle $\Theta_L$. The maximal intensity is found along direction $d$, otherwise it decreases as follows:
+\begin{center}
+    $I'(\Theta) = cos^k \ \Theta \cdot I$
+\end{center}
+If $\Theta > \Theta_L$, then $I'(\Theta) = 0$.
+\subsection{Distance Attenuation}
+Light intensity \textbf{attenuation} is proportional to $r^2$ and there exist two ways two compute it. The first one is the following:
+\begin{center}
+    $att(r) = \displaystyle\frac{1}{max(r,r_{min})^2}$
+\end{center}
+The second one needs the extra parameters $a_1$, $a_2$, and $a_3$:
+\begin{center}
+    $att(r) = \displaystyle\frac{1}{a_1 + a_2 \cdot r + a_3 \cdot r^2}$
+\end{center}
+\newpage
+\noindent
+Now we can define the \textbf{extended Phong model} as follows:
+\begin{center}
+    $ I = I_e + \rho_a \cdot I_a + \displaystyle\sum^n_{j=1}(\rho_d \ \cdot \langle n_j,l_j\rangle + \ \rho_s \ \cdot \langle v,r_j\rangle^k) \cdot I_j  \cdot att(d)$
+\end{center}
+While computing lightning, all direction vectors must be normalized and we must handle cases in which cosines are negative.
+\subsection{Bidirectional Reflectance Distribution Function}
+\textbf{Bidirectional Reflectance Distribution Function} (\textbf{BRDF})
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 6 - BRDF.png}
+    \caption{Ray casting representation}
+\end{figure}
+
+\newpage
+
+% --------------------------- %
+% Chapter 4 - Light and Color
+% --------------------------- %
+\section{Light and Color}
+Light consists of charged particles emitting electromagnetic radiations (EMs). Humans can only see some EMs depending on the \textbf{wavelength} $ \gamma [nm] $. The contribution of each $\gamma$ is described using \textbf{Spectral Power Distribution} (\textbf{SPD}).
+\subsection{Color Perception}
+Eyes have two kinds of photoreceptor cells: \textbf{rods}, which perceive light intensity, and \textbf{cones}, which perceive colors. Cones can be distinguished in three types: $S$ for short wavelengths, $M$ for medium ones, and $L$ for long ones. Given a cone sensitivity $w$ and the incoming SPD $I$, the \textbf{cone stimulus} is the following:
+\begin{center}
+    $ \int w(\gamma) \cdot I(\gamma) \ d\gamma $
+\end{center}
+\subsection{Displays}
+Displays stimulate cones using several sub-pixels. Given sub-pixels' intensities $R$, $G$, and $B$, and SPDs $\bar{r}$, $\bar{g}$, and $\bar{b}$, the emitted light is computed as follows:
+\begin{center}
+    $I(\gamma) = R \cdot \bar{r}(\gamma) + G \cdot \bar{g}(\gamma) + B \cdot \bar{b}(\gamma)$
+\end{center}
+\subsection{Gamma Correction}
+The relation between \textbf{display input} $I_{in}$ and \textbf{intensity shown} $I_{out}$ is non-linear, thus we should apply \textbf{inverse gamma correction} to the intensity $I$:
+\begin{center}
+    $I_{in} = I^{\frac{1}{\gamma}} \ \ \ \ 1.8 \leq \gamma \leq 2.4$
+\end{center}
+We assign more bits to dark regions to which we are more sensitive. In short:
+\begin{enumerate}
+    \item Compute intensities
+    \item Apply \textcolor{OliveGreen}{inverse gamma correction} for perceptual encoding
+    \item Display applies \textcolor{blue}{gamma}
+    \item Get the \textcolor{red}{desired intensities} on the screen
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=4cm]{Figure 7 - Gamma Correction.png}
+    \caption{Ray casting representation}
+\end{figure}
+\subsection{Tone Mapping}
+Displays show a range of intensities $ (I_{black}, I_{white}) $ expressed in \textbf{luminance} ($cd/m^2$). Since it is impossible to reproduce the real luminance range on a screen, we can use simple \textbf{tone mapping} followed by gamma correction with parameters $\alpha$ and $\beta$:
+\begin{center}
+    $I_{in} = max((\alpha \cdot I^\beta)^{\frac{1}{\gamma}}, 1.0)$ 
+\end{center}
+Values outside the range must be clamped.
+
+\newpage
+
+% ------------------ %
+% Chapter 5 - Meshes
+% ------------------ %
+\section{Meshes}
+Complex surfaces can be approximated using \textbf{triangle meshes}.
+\subsection{Anatomy of Triangle Meshes}
+Triangle meshes are composed of:
+\begin{itemize}
+    \item \textbf{Vertices}: $ V = \{v_1,v_2,...,v_n\}, \ v_i \in \mathbb{R}^3 $
+    \item \textbf{Edges}: $ E = \{e_1,e_2,...,e_l\}, \ e_i = [v_{i1},v_{i2}] $
+    \item \textbf{Faces}: $F = \{f_1,f_2,...,f_m\}, \ f_i = [v_{i1}, v_{i2}, v_{i3}] $
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=5cm]{Figure 8 - Mesh.png}
+    \caption{Triangle mesh representation}
+\end{figure}
+\subsection{Ray-Triangle Intersection}
+First, we define the ray-plane intersection, where $t$ is computed as follows:
+\begin{center}
+    $t = \displaystyle\frac{\langle p - o,N\rangle}{\langle d,N\rangle}$
+\end{center}
+A triangle is defined by three points $p_1$, $p_2$, and $p_3$. In order to compute the intersection, we must find a $t$ such that:
+\begin{center}
+    $p = \gamma(t)$ is coplanar with $p_1$, $p_2$, $p_3$
+\end{center}
+If $ t > 0 $ and $ p $ is inside the triangle, then we compute lighting at point $p$. \\
+The normal vector $ n $ at $ p $ is computed as follows:
+\begin{center}
+    $n = \displaystyle\frac{(p_2 - p_1) \ \times \ (p_3 - p_1)}{||(p_2 - p_1) \ \times \ (p_3 - p_1)||}$
+\end{center}
+\subsection{Barycentric Coordinates}
+Given a triangle $[p_1, p_2, p_3]$ and a point $p$ inside:
+\begin{enumerate}
+    \item Compute the area $W$ of the triangle
+    \item Compute the areas $w_1$, $w_2$, and $w_3$ formed by $p$ and the edges opposite $p_1$, $p_2$, and $p_3$
+    \item Normalize the areas: $\lambda_i(p) = \displaystyle\frac{w_i}{W}$
+\end{enumerate}
+The obtained values are the \textbf{barycentric coordinates} of $p$ with respect to triangle $[p_1, p_2, p_3]$ and have two properties:
+\begin{itemize}
+    \item Partition of unity: $\displaystyle\sum^3_{i=1} \lambda_i(p) \ = 1$
+    \item Non-negativity: $\lambda_i(p) \geq 0 \ $ for $\ p \in [p_1,p_2,p_3]$
+\end{itemize}
+If $p$ is not in the triangle, then the second property does not hold.
+\subsubsection{Computation in 2D}
+\begin{enumerate}
+    \item Define $p_i = (x_i,y_i)$ and $p = (x,y)$
+    \item Compute the area of triangle $[p1, p2, p3]$ via $2D$ determinant:
+        \begin{center}
+            $2W = (x_2 - x_1)\cdot(y_3 - y_1) - (x_3 - x_1) \cdot (y_2 - y_1)$
+        \end{center}
+    \item Compute similarly $w_1$, $w_2$, and $w_3$
+\end{enumerate}
+\subsection{Computation in 3D}
+\begin{enumerate}
+    \item Define $p_i = (x_i,y_i, z_i)$ and $p = (x,y,z)$
+    \item Compute the area of triangle $[p1, p2, p3]$ via $3D$ cross-product:
+        \begin{center}
+            $ n = (p_2 - p_1) \times (p_3 - p_1) \ \ \ \ \ 2W = ||n|| $
+        \end{center}
+    \item Compute $w_1$, $w_2$, and $w_3$:
+        \begin{center}
+            $n_i = (p_{i + 1} - p) \times (p_{i - 1} - p) \ \ \ \ \ 2w_i = ||n_i|| \cdot sign(\langle n_i, n\rangle)$
+        \end{center}
+\end{enumerate}
+\subsection{Procedural Textures}
+In \textbf{procedural textures}, the color of an object depends on the coordinates of its surface point:
+\begin{itemize}
+    \item Sphere: reflection coefficients as function of the normal vector coordinates
+    \item Triangle: reflection coefficients as function of the barycentric coordinates
+\end{itemize}
+Let's define a function $f(u,v):\mathbb{R}^2 \rightarrow \mathbb{R}^3$:
+\begin{center}
+    $f(u,v) = (\lfloor n \cdot u \rfloor + \lfloor n \cdot v \rfloor) \% 2$
+\end{center}
+In order to texture a triangle, we can use two of its barycentric coordinates:
+\begin{center}
+    $f(u,v)=f(\lambda(p_3),\lambda(p_2))$
+\end{center}
+In order to texture a sphere, we need to transform the position $p=(x,y,z)$ to the spherical coordinates.
+First we compute the angles $\theta$ and $\phi$:
+\begin{center}
+    $\theta = arcsin(\displaystyle\frac{y}{r}) \in [-\displaystyle\frac{\pi}{2}, \displaystyle\frac{\pi}{2}]$, \ \ \ \ \ \ $\phi = arctan(\displaystyle\frac{z}{x}) \in [-\pi, \pi] $
+\end{center}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{Figure 9 - Texturing.png}
+    \caption{Sphere texturing representation}
+\end{figure}
+Then we can compute the spherical coordinates $(u,v)$:
+\begin{center}
+    $u=\displaystyle\frac{\phi + \pi}{2 \cdot \pi}$, \ \ \ \ \ $v = \displaystyle\frac{\theta + \pi/2}{\pi}$
+\end{center}
+
+\newpage
+
+% -------------------------- %
+% Chapter 6 - Transformation
+% -------------------------- %
+\section{Transformation}
+Objects are described by $3D$ points: a sphere with center $c$ and radius $r$ is defined as follows:
+\begin{center}
+    $r : S(c,r) = \{p = (x,y,z) : ||p-c|| = r\} $
+\end{center}
+\textbf{Translations} are described by a translation vector $t$:
+\begin{center}
+    $t = (t_x, t_y, t_z) \rightarrow p' = p + t$ \\
+    \vspace{0.2cm}
+    Sphere $S(c, r) \ \rightarrow \ S(c + t, r)$
+\end{center}
+\textbf{Rotations} are described by a transformation matrix $R$:
+\begin{center}
+    $p' = Rp$ \\
+    \vspace{0.2cm}
+    Axis $\{c + \lambda v : \lambda \in \mathbb{R}\} \ \rightarrow \ \{Rc + \lambda \cdot (Rv) : \lambda \in \mathbb{R}\}$
+\end{center}
+\subsection{Global and Local Coordinates}
+There exist two ways to describe motions: using \textbf{global coordinates}, meaning the camera ones, or using \textbf{local coordinates}, meaning the object ones. From camera’s point of view, the object's coordinates change, while from the object's point of view, the ray origin coordinates change in the opposite direction. \\
+Initially, every object is born at the origin and the local coordinates are identical to the global ones, then objects are moved around: if an object is rotated by $R$ and translated by $T$, then from its perspective the world is translated by $-T$ and rotated by $-R$.
+\subsection{Rotations}
+In order to describe rotations, we must define an object center $c$ and a \textbf{rotation axis}. In global coordinates, the rotation axis is defined as follows:
+\begin{center}
+    $\{c + \lambda\cdot (1,0,0):\lambda\in\mathbb{R}\}$
+\end{center}
+In local coordinates, we rotate the ray and its origin in the opposite direction with the following rotation axis:
+\begin{center}
+    $\{\lambda\cdot(1,0,0):\lambda\in\mathbb{R}\}$
+\end{center}
+\subsection{Homogeneous Coordinates}
+Since translations are described by additions and rotations by multiplications, we add a coordinate and work in $4$ dimensions. For any point $p$ and direction $d$:
+\begin{center}
+    $p = (x,y,z) \ \ \ \rightarrow \ \ \ p = (x,y,z,1)$ \\
+    $d = (x,y,z) \ \ \ \rightarrow \ \ \ d = (x,y,z,0)$ 
+\end{center}
+The new coordinates are called the \textbf{homogeneous coordinates}. \\
+We need to introduce some arithmetic meanings:
+\begin{itemize}
+    \item Position $+$ Displacement $=$ Position
+    \item Position $-$ Position $=$ Displacement
+    \item Displacement $+$ Displacement $=$ Displacement
+    \item Position $+$ Position $=$ Position
+\end{itemize}
+
+\newpage
+
+% ------------------------------------------------- %
+% Chapter 7 - Shadows, Reflections, and Refractions
+% ------------------------------------------------- %
+\section{Shadows, Reflection, and Refraction}
+\subsection{Shadows}
+\textbf{Shadows} are dark spots for which the light is occluded and consist of an \textbf{umbra}, which is a complete shadow, and a \textbf{penumbra}, which is a partial shadow. They convey information such as objects' relative positions, depth, and lights positions. \\
+After tracing the primary ray, we trace a \textbf{shadow ray} from the intersection point towards the light source: if the intersection is closer than the light source, then the object is in shadow. \\
+The Phong lighting model is extended by the \textbf{shadow term} $s_j(p)$ which evaluates to $0$ if the shadow ray hits an object, otherwise evaluates to $1$
+\begin{center}
+    $ I = I_e + \rho_a \cdot I_a + \displaystyle\sum^n_{j=1}(\rho_d \ \cdot \langle n_j,l_j\rangle + \ \rho_s \ \cdot \langle v,r_j\rangle^k) \cdot I_j \cdot s_j(p)$
+\end{center}
+\subsection{Reflections}
+\textbf{Reflection} occurs when a ray hits a point $p$ on a mirror surface.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{Figure 10 - Reflection.png}
+    \caption{Reflection representation}
+\end{figure}
+The procedure is the following:
+\begin{enumerate}
+    \item Compute the \textbf{reflection ray} $r$ as follows:
+        \begin{center}
+            $r = i - 2n \ \cdot \langle n,i\rangle$
+        \end{center}
+    \item Trace ray $r$ from $p$ towards the reflection direction
+    \item Find the intersection point $q$ with the first object 
+    \item Compute the color at point $q$
+    \item Reflect the color towards $p$
+\end{enumerate}
+For partial reflections, we use the constant $\alpha_{reflect} \in [0,1]$.
+\subsection{Refractions}
+\textbf{Refraction} occurs when light propagates through different materials. Given the speed of light in vacuum $c$ and the speed of light in the medium $v$, then the index of refraction $\delta$ is computed as follows:
+\begin{center}
+    $\delta = \displaystyle\frac{c}{v}$
+\end{center}
+The \textbf{Snell's law} is defined using the refraction indices $\delta_1$ and $\delta_2$ and the velocities in the medium $v_1$ and $v_2$:
+\begin{center}
+    $\delta_1 \cdot sin \ \theta_1 = \delta_2 \cdot sin \ \theta_2 \ \rightarrow \ \displaystyle\frac{sin \ \theta_1}{sin \ \theta_2} = \displaystyle\frac{\delta_2}{\delta_1}$
+\end{center}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=9cm]{Figure 11 - Refraction Constraint.png}
+    \caption{Refraction constraint}
+\end{figure}
+As in reflection, we compute a \textbf{refraction ray} $r$ and evaluate the color of the point it intersects.
+The refraction ray $r$ is computed as follows:
+\begin{center}
+    $a = n \cdot \langle n,i\rangle \ \ \ \ b = i - a \ \ \ \ \beta = \displaystyle\frac{\delta_1}{\delta_2} \ \ \ \ \alpha = \sqrt{1 + (1 - \beta^2) \cdot \displaystyle\frac{||b||^2}{||a||^2}}$ \\
+    \vspace{0.2cm}
+    $r = \alpha \cdot a + \beta \cdot b$
+\end{center}
+\subsection{Recursive Raytracing Algorithm}
+The following is a recursive raytracing algorithm:
+\begin{verbatim}
+    trace(origin o, direction d):
+        p = findFirstIntersection(o, d)
+        n = surfaceNormal(p)
+        s = reflectionDirection(p, n)
+        t = refractionDirection(p, n)
+        I_{direct} = phongLighting(p, n, d)
+        I_{reflect} = \alpha_{reflect} \cdot trace(p, s)
+        I_{refract} = \alpha_{refract} \cdot trace(p, t)
+        return (I_{direct} + I_{reflect} + I_{refract})
+\end{verbatim}
+The algorithm terminates when the ray leaves the scene, if the maximal recursion depth is reached, or if the intensity is smaller than some threshold.
+\subsection{Fresnel Effect}
+Due to the \textbf{Fresnel effect}, the amount of light that is reflected of refracted on a surface depends on the viewing angle. The Fresnel reflection ray $F_{reflection}$ is computed as follows:
+\begin{center}
+    $F_{reflection} = \displaystyle\frac{1}{2} \cdot \big((\displaystyle\frac{\delta_2 \cdot cos\Theta_1 - \delta_1 \cdot cos\Theta_2}{\delta_2 \cdot cos\Theta_1 + \delta_1 \cdot cos\Theta_2})^2 + (\displaystyle\frac{\delta_1 \cdot cos\Theta_1 - \delta_2 \cdot cos\Theta_2}{\delta_1 \cdot cos\Theta_1 + \delta_2 \cdot cos\Theta_2})^2\big)$
+\end{center}
+The Fresnel refraction ray $F_{refraction}$ is computed as follows:
+\begin{center}
+    $F_{refraction} = 1 - F_{reflection}$
+\end{center}
+
+\newpage
+
+% ------------------------------- %
+% Chapter 8 - Advanced Raytracing
+% ------------------------------- %
+\section{Advanced Raytracing}
+Raytracing is expensive since we generate at least one ray for each pixel and recursively more secondary rays for each intersection.
+\subsection{Efficient Raytracing}
+Efficient raytracing uses space partitioning to reference singularly to each grid cell and to the objects contained in it.
+\subsubsection{Bounding Volume Hierarchy}
+In \textbf{Bounding Volume Hierarchy} (\textbf{BVH}), neighbouring objects are gathered through simple bouncing primitives, starting from the biggest primitives.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 12 - BVH.png}
+    \caption{BVH representation}
+\end{figure}
+\subsubsection{Binary Space Partitioning}
+In \textbf{Binary Space Partitioning} (\textbf{BSP}), the space is recursively divided with planes. It has a runtime of $O(logn)$, but the resulting space is hard to traverse.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 13 - BSP.png}
+    \caption{BSP representation}
+\end{figure}
+\subsubsection{kd-Tree}
+In \textbf{kd-tree} partitioning, the space is recursively divided with axis aligned planes. It uses the following parametric ray equation:
+\begin{center}
+    $ \gamma(t) = 0 + t \cdot d$,
+\end{center}
+recursively considering the active ray segment $[t_{min}, t_{max}]$. The following is a traversing algorithm that runs in $O(logn)$:
+\begin{verbatim}
+    float recTraverse(node, t_min, t_max):
+        if (node.isLeaf):
+            intersectTrianglesInLeaf(node)
+            return t_closestHit
+        u = (node.s - o[node.a]) / d[node.a]
+        if (u <= t_min):
+            return recTraverse(node.b, t_min, t_max)
+        else if (u >= t_max):
+            return recTraverse(node.f, t_min, t_max)
+        else:
+            t_hit = recTraverse(node.f, t_min, u)
+            if (t_hit <= u):
+                return t_hit
+            return recTraverse(node.b, u, t_max)
+            
+    void traverse():x
+        (t_min, t_max) = clip(0, max)
+        recTraverse(kdRoot, t_min, t_max)
+\end{verbatim}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 14 - kd.png}
+    \caption{BSP representation}
+\end{figure}
+\newpage
+\subsection{Antialiasing}
+With \textbf{antialiasing}, we perform super-sampling tracing $k \times k$ rays per pixel and averaging the colors.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 15 - Antialiasing.png}
+    \caption{Antialiasing effect}
+\end{figure}
+\noindent
+There are two types of super-sampling: in the \textbf{stochastic one}, many rays are traced to handle random distribution, while in the \textbf{adaptive one}, we start with $5$ rays per pixel and, if the color difference is too big, we compute $4$ sub-pixels.
+\subsection{Thin Lens Camera Model}
+In \textbf{thin lens camera model}, there are some additional inputs to the raytracer: the focal distance $f$, the aperture size $r$, and the number of samples $n$. \\
+The following algorithm represents the model working:
+\begin{verbatim}
+    color = 0
+    focal_point = f * d / d.z
+    for i = 0 to n:
+        offset = randDisk(r)    // random offset within aperture
+        new_o = o + (offset, 0)     // z component stays the same
+        new_d = normalize(focal_point - new_o)
+        color += traceRay(Ray(new_o, new_d))
+    color = color / n
+\end{verbatim}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 16 - Model.png}
+    \caption{Thin lens model representation}
+\end{figure}
+
+\newpage
+
+% ------------------------- %
+% Chapter 9 - Rasterization
+% ------------------------- %
+\section{Rasterization}
+\textbf{Rasterization} consists of coloring all visible pixels.
+\subsection{Drawing Lines}
+Since trying to draw a line from point $p_1 \in \mathbb{R}^3$ to point $p_2 \in \mathbb{R}^3$ with raytracing would result in all rays missing the line, we must follow an inverse approach:
+\begin{enumerate}
+    \item Consider rays from $p_1$ and $p_2$ to the camera
+    \item Compute the intersections with the image
+    \item Obtain the screen coordinates $(x_1, y_1)$ and $(x_2, y_2)$ for $p_1$ and $p_2$
+    \item Draw the line from $(x_1, y_1)$ to $(x_2, y_2)$
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 17 - Line.png}
+    \caption{Drawing a line}
+\end{figure}
+The closest pixels to the “ideal” line must be colored. \\
+A line in $2D$ is defined as follows:
+\begin{center}
+    $m = \displaystyle\frac{(y_2 - y_1)}{(x_2 - x_1)} \ \ \ \ d = y_1 - m \cdot x_1 \ \ \ \     y = m \cdot x + d $
+\end{center}
+Without loss of generalization:
+\begin{itemize}
+    \item $ 0 \leq m \leq 1$
+    \item $x_1 < x_2$
+    \item $0^\circ \leq$ line slop $\leq 45^\circ$
+\end{itemize}
+\newpage
+\subsection{Midpoint Algorithm}
+While drawing a line, at each $x-$step there are two options for the $y-$coordinate: either it stays as it is or it increases by $1$.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=9cm]{Figure 18 - Midpoint.png}
+    \caption{Midpoint algorithm}
+\end{figure}
+\noindent
+We must determine where the \textbf{midpoint} $M$ lies with respect to $Q$, which is the intersection of the ideal line and the vertical line at $x_i + 1$: if $M$ lies above $Q$, then we take pixel $P_0$, while if $M$ lies below $Q$, then we take pixel $P_1$. \\
+The procedure to determine whether a point is above or below a line is the following:
+\begin{enumerate}
+    \item Compute $dx$ and $dy$ as follows:
+        \begin{center}
+            $dx = x_2 - x_1$ \ \ \ \ $dy = y_2 - y_1$
+        \end{center}
+    \item Compute $F(x,y)$ as follows:
+        \begin{center}
+            $F(x,y) = y \cdot dx - x \cdot dy + x_1 \cdot dy - y_1 \cdot dx$
+        \end{center}
+    \item Check the sign of $F(x,y)$:
+        \begin{itemize}
+            \item if $F(x,y) = 0$, then $(x,y)$ lies on the line 
+            \item if $F(x,y) > 0$, then $(x,y)$ lies above the line 
+            \item if $F(x,y) < 0$, then $(x,y)$ lies below the line 
+        \end{itemize}
+\end{enumerate}
+The midpoint decider $f$ is computed as follows:
+\begin{center}
+    $f = F(x_i + 1, y_i + 0.5)$
+\end{center}
+If $f \geq 0$, then we choose $P_0$, otherwise we choose $P_1$.
+\newpage
+The midpoint decider is computed incrementally:
+\begin{center}
+    $F(M_0) = F(M) - 2 \cdot dy$ \\
+    $F(M_1) = F(M) - 2 \cdot dy + 2 \cdot dx$ \\
+    Initial value: $F(M) = - 2 \cdot dy + dx $
+\end{center}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=5cm]{Figure 19 - Decider.png}
+    \caption{Midpoint decider}
+\end{figure}
+The implementation of the midpoint algorithm is the following:
+\begin{verbatim}
+    x = x1
+    y = y1
+    dx = x2 - x1
+    dy = y2 - y1
+    f = -2 * dy + dx
+    for i = 0 to dx:
+        setPixel(x,y)
+        x += 1
+        if (f < 0):
+            y += 1
+            f += 2 * dx
+        f -= 2 * dy
+\end{verbatim}
+Lines drawn with the algorithm appear aliased since we set only one pixel per column, thus we perform antialiasing by setting two pixels $P_0$ and $P_1$ per column. \\
+The pixels intensities are proportional to the distance to the ideal line:
+\begin{center}
+    $I_0 = \displaystyle\frac{F(P_1)}{F(P_1) - F(P_0)}$ \\
+    $I_1 = \displaystyle\frac{-F(P_0)}{F(P_1) - F(P_0)}$
+\end{center}
+The sum of the intensities is $1$.
+\subsection{z-Buffer}
+\subsection{Perspective Interpolation}
+\subsection{Rasterization of Triangles}
+Given a $3D$ triangle $[p_1, p_2, p_3]$ in global coordinates, we perform the following procedure:
+\begin{enumerate}
+    \item For each point $p_i$ compute the screen coordinates $s_i$:
+        \begin{center}
+            $s_i = (x_i, y_i)$
+        \end{center}
+    \item Compute the reciprocal $z-$values $z_i$ as follows:
+        \begin{center}
+            $z_i = \displaystyle\frac{1}{p_i^z}$
+        \end{center}
+    \item Found a bounding box defined as follows:
+        \begin{center}
+            $x_{min} = min(x_1,x_2,x_3)$ \\
+            $y_{min} = min(y_1, y_2, y_3)$ \\
+            $x_{max} = max(x_1,x_2,x_3)$ \\
+            $y_{max} = max(y_1, y_2, y_3)$
+        \end{center}
+    \item Check for each pixel $s_i$ within the box if it is in the triangle as follows:
+        \begin{enumerate}
+            \item Compute the barycentric coordinates $\lambda_1$, $\lambda_2$, and $\lambda_3$ of $s$
+            \item Pixel $s$ is in the triangle if all the barycentric coordinates are non-negative
+        \end{enumerate}
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 20 - Triangles.png}
+    \caption{Rasterization of triangles}
+\end{figure}
+
+\newpage
+
+% ---------------------------------------- %
+% Chapter 10 - Graphics Pipeline and WebGL
+% ---------------------------------------- %
+\section{Graphics Pipeline and WebGL}
+In the \textbf{graphics rendering pipeline}, everything runs in parallel according to the following procedure:
+\begin{enumerate}
+    \item \textbf{Application}: determines the composition of the scene
+    \item \textbf{Geometry Processing}: puts the geometry in the common space, performs clipping and screen mapping, and computes per-vertex shading
+    \item \textbf{Rasterization}: performs primitive setup and traversal and generates fragments with interpolated per-vertex data
+    \item \textbf{Pixel processing}: colors each fragment and merge them into an image
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 21 - Pipeline.png}
+    \caption{Graphics rendering pipeline}
+\end{figure}
+Let's have a closer look at the pipeline marking the fixed stages in \textcolor{Orange}{orange}, which can be configured, and in \textcolor{blue}{blue} the programmable stages, whose task must be specified:
+\begin{enumerate}
+    \item \textcolor{Orange}{Vertex specification}: setting up geometry
+    \item \textcolor{blue}{Vertex shader}: performing transformations
+    \item \textcolor{Orange}{Vertex post-processing}: clipping and outputting geometry
+    \item \textcolor{Orange}{Primitive assembly}: creating geometry from vertices and face culling
+    \item \textcolor{Orange}{Rasterization}: creating fragments and interpolating data
+    \item \textcolor{blue}{Fragment shader}: shading
+    \item \textcolor{Orange}{Per-sample operations}: merging and depth test
+\end{enumerate}
+\subsection{Depth Test and Face Culling}
+The \textbf{depth test} is necessary to find which object occludes which other object. \\
+\textbf{Face culling} prevents the rendering of the faces that are not visible to the viewer.
+\newpage
+\subsection{WebGL and GLSL}
+The graphics pipeline in \textbf{WebGL} performs the following procedure:
+\begin{enumerate}
+    \item Create a WebGL canvas
+    \item Generate and send the geometry to \textbf{Graphics Processing Unit} (\textbf{GPU})
+    \item Define vertex shaders (per-vertex operations)
+    \item Define fragment shaders (per-pixel operations)
+    \item Use the geometry and the shader program to draw the scene
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=9cm]{Figure 22 - Flow.png}
+    \caption{Pipeline data flow}
+\end{figure}
+\subsection{Vertex Attributes}
+Geometric objects are stored as vertices, meaning collections of the following attributes in space: position, color, normal vector, and more. \\
+Vertices data is stored in \textbf{Vertex Buffer Objects} (\textbf{VBOs}), which are arrays of concatenated elements of each vertex. Moreover, the \textbf{Vertex Array Objects} (\textbf{VAOs}) describe the state of attributes, which VBOs to use, and how to pull the data from it.
+
+\newpage
+
+% ------------------------------------ %
+% Chapter 11 - Transformation Pipeline
+% ------------------------------------ %
+\section{Transformation Pipeline}
+The \textbf{transformation pipeline} performs different types of transformations in order to convert the given coordinates.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{Figure 23 - Transformations.png}
+    \caption{Transformation pipeline steps}
+\end{figure}
+\subsection{Model Transformations}
+\textbf{Model transformations} convert local \textbf{model coordinates} (\textbf{MC}) into global \textbf{world coordinates} (\textbf{WC}) through a multiplication in homogeneous coordinates with a \textbf{model matrix} $M$.
+\subsection{Viewing Transformations}
+\textbf{Viewing transformations} convert global world coordinates into camera \textbf{viewing coordinates} (\textbf{VC}). Let $VPN$ the view plane normal and $VUP$ the view up vector, then we can define the following variables:
+\begin{center}
+    $z' = \displaystyle\frac{VPN}{||VPN||} \ \ \ \ x' = \displaystyle\frac{VUP \times z'}{||VUP \times z'||} \ \ \ \ y' = z' \times x' $
+\end{center}
+Since we must express everything using the new coordinate system, we can transform the world such that the new coordinate system overlaps with the old one. Let $VP$ be the view point, then the \textbf{view matrix} is defined as follows:
+\begin{center}
+    $V = \begin{pmatrix}
+        x'^T_x & x'^T_y & x'^T_z & -x'^TVP \\\\
+        y'^T_x & y'^T_y & y'^T_z & -y'^TVP \\\\
+        z'^T_x & z'^T_y & z'^T_z & -z'^TVP \\\\
+        0 & 0 & 0 & 1
+    \end{pmatrix}$
+\end{center}
+\subsection{Projection Transformations}
+\textbf{Projection transformations} convert viewing coordinates into \textbf{normalized coordinates} (\textbf{NC}) $[-1, 1]^3$. We need to specify the \textbf{viewing frustum}, meaning the range in which objects are visible:
+\begin{itemize}
+    \item \textbf{Near plane}: $z = -n$
+    \item \textbf{Far plane}: $z = -f$
+    \item $0 < n < f$
+\end{itemize}
+These transformation can be divided in perspective and orthographic.
+\subsubsection{Perspective Projections}
+In \textbf{perspective projections}, all rays go through the camera and the viewing frustum is mapped to a unit cube defined as follows:
+\begin{center}
+    $[-1,1] \times [-1,1] \times [-1,1]$
+\end{center}
+Given a vertical opening angle $\beta$ and an aspect ratio $\gamma$, then we have the following relations:
+\begin{center}
+    $\displaystyle\frac{n}{r} = cot(\displaystyle\frac{\beta / 2}{\gamma}) \ \ \ \ \displaystyle\frac{n}{t} = cot(\displaystyle\frac{\beta}{2})$
+\end{center}
+The \textbf{perspective matrix} is computed as follows:
+\begin{center}
+    $P_{persp} =
+    \begin{pmatrix}
+        \displaystyle\frac{n}{r} & & & \\
+        & \displaystyle\frac{n}{t} & & \\
+        & & -\displaystyle\frac{f + n}{f - n} & -\displaystyle\frac{2fn}{f - n} \\
+        & & -1 & 0
+    \end{pmatrix}$
+\end{center}
+\subsubsection{Orthographic Projections}
+In \textbf{orthographic projections}, all rays are parallel to the viewing direction, thus the viewing frustum is an axis-aligned cuboid mapped to a unit cube as follows:
+\begin{center}
+    $[-r, r] \times [-t,t] \times [-n,-f] \ \rightarrow \ [-1,1]^3$
+\end{center}
+The \textbf{orthographic matrix} is defined as follows:
+\begin{center}
+    $P_{ortho} =
+    \begin{pmatrix}
+        \displaystyle\frac{1}{r} & & & \\
+        & \displaystyle\frac{1}{t} & & \\
+        & & \displaystyle\frac{-2}{f - n} & -\displaystyle\frac{f + n}{f - n} \\
+        & & 0 & 1
+    \end{pmatrix}$
+\end{center}
+\subsection{Window-to-Viewport Transformations}
+\textbf{Window-to-Viewport transformations} convert normalized coordinates into \textbf{screen coordinates} (\textbf{SC}) by scaling and translating such that:
+\begin{itemize}
+    \item $x$ is mapped linearly: $[-1,1] \rightarrow [0,w]$
+    \item $y$ is mapped linearly: $[-1,1] \rightarrow [0,h]$
+    \item $z$ is mapped linearly: $[-1,1] \rightarrow [0,1]$
+\end{itemize}
+\subsection{Transformations in Rasterization}
+Matrix transformations are per-vertex operations, meaning they should be implemented in a vertex shader:
+\begin{center}
+    $v_{out} = PVMv_{in}$
+\end{center}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=10cm]{Figure 24 - Matrices.png}
+    \caption{Transformation matrices effects}
+\end{figure}
+
+\newpage
+
+% ------------------------------ %
+% Chapter 12 - Light Computation
+% ------------------------------ %
+\section{Light Computation}
+Inputs for light computation such as position, color, and normal vector are defined per vertex. The Phong reflectance model is defined as follows:
+\begin{center}
+    $I = k_a \cdot i_a + k_d(\vec{L} \cdot \vec{N}) \cdot i_d + k_s(\vec{R} \cdot \vec{V})^s \cdot i_s$, where
+\end{center}
+\begin{itemize}
+    \item $\vec{N}$: normal vector transformed with model and view matrices
+    \item $\vec{L}$: light vector transformed with a view matrix
+    \item $\vec{V}$: viewer position transformed with model and view matrices
+    \item $\vec{R}$: reflection direction computed in a fragment shader from $\vec{L}$ and $\vec{N}$
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 25 - Reflectance.png}
+    \caption{Phong reflectance model}
+\end{figure}
+\subsection{Shading and Illumination}
+In \textbf{Gouraud shading}, the color is computed per vertex and then interpolated; the Phong model is computed in a vertex shader. On the other side, in \textbf{Phong shading}, all information for light computation is interpolated, then the color is computed per fragment; the Phong model is computed in a fragment shader. \\ 
+The most efficient method is the Phong shading since each fragment is shaded separately in a fragment shader.
+
+\newpage
+
+% ---------------------------- %
+% Chapter 13 - Texture Mapping
+% ---------------------------- %
+\section{Texture Mapping}
+In order to implement \textbf{texture mapping}, we augment simple geometry with extra information while shading.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=12cm]{Figure 26 - Texture.png}
+    \caption{Texture mapping concept}
+\end{figure}
+The texture itself is an image composed of \textbf{texels} and with a parameter space $\Omega$. It obeys to the following procedural pattern:
+\begin{center}
+    $M:(u,v) \rightarrow color$
+\end{center}
+Given an object $S$, usually a triangle mesh, we find the correspondences between $S$ and the $2D$ plane through the following \textbf{parameterization} $f$:
+\begin{center}
+    $f : \Omega \leftrightarrow S$
+\end{center}
+The following example computes $f(u,v)$ for a sphere:
+\begin{center}
+    $\Omega = \{(u,v)\in [0,1]^2\}$ \\
+    \vspace{0.1cm}
+    $S = \{(x,y,z) \in \mathbb{R}^3:x^2 + y^2 + z^2 = 1\}$ \\
+    \vspace{0.1cm}
+    $f(u,v) = (t \cdot cos(2\pi u), \ t \cdot sin(2\pi v)$
+\end{center}
+\subsection{Texturing Triangles}
+Given a triangle $[p_0, p_1, p_2]$ and a point $p_i \in \mathbb{R}^3$, we associate the following texture coordinates:
+\begin{center}
+    $t_i =(u_i,v_i) \in \mathbb{R}^2$,
+\end{center}
+then we map the texture triangle $[t_0, t_1, t_2]$ linearly to the triangle. \\
+First, we interpolate $(u,v)$ from $uv$-coordinates of the vertices, then we fetch the corresponding texture value.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 27 - TT.png}
+    \caption{Texturing a triangle}
+\end{figure}
+\subsection{Texture Access}
+In order to texture the fragments $s$ in the screen space, we take the four closest texels through nearest neighbors interpolation and interpolate between them through \textbf{bilinear filtering}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{Figure 28 - Access.png}
+    \caption{Texture access}
+\end{figure}
+\subsection{Idea Behind Texture Mapping}
+We read new \textbf{diffuse colors} from the texture and then compute the Phong model using them. Moreover, textures supply high resolution \textbf{displacement} information which is used to displace vertices along the normal direction.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 29 - Displacement.png}
+    \caption{Displacement representation}
+\end{figure}
+
+\newpage
+
+% ------------------------------------- %
+% Chapter 14 - Shadows in Rasterization
+% ------------------------------------- %
+\section{Shadows in Rasterization}
+Since the graphics pipeline only allows to do local computations, i.e. per-vertex and per-fragment, we need a sort of preprocessing.
+\subsection{Shadows Preprocessing}
+First, we compute all the distances $z_i$ from points to a light source $L$ and store them in the z-buffer. While rendering, we test the current distance to $L$ with the stored smallest distance $z_{min}$. The z-buffer is thus used as a \textbf{shadow map}, one per light source. \\
+In per-fragment computation, we transform its coordinates into the local coordinates system of $L$. The fragment is in shadow if:
+\begin{center}
+    $z > z_{min}(x,y)$
+\end{center}
+
+\newpage
+
+% ------------------------------------ %
+% Chapter 15 - Physics-based Animation
+% ------------------------------------ %
+\section{Introduction to Physics-based Animation}
+Objects motions are computed using transformation matrices. In order to obtain an \textbf{animation}, we must compute each frame's \textbf{simulation state}, consisting of a \textbf{position} $x(t)$ and a \textbf{velocity} $v(t)$, as follows: 
+\begin{center}
+    $x(t)$ \\
+    $v(t) = \dot{x}(t)$
+\end{center}
+\subsection{Simulation Step}
+According to Newton's first, no external forces are considered. Thus, given a time step $\Delta t$, we have the following relations:
+\begin{center}
+    $ v(t + \Delta t) = v(t)$ \\
+    $ x(t + \Delta t) = x(t) + \Delta t \cdot v(t) $
+\end{center}
+Moreover, according to Newton's second law and given a force $F$, a mass $m$, and an acceleration $a$, we have the following relations:
+\begin{center}
+    $ F(t) = m \cdot a(t) \ \rightarrow \ a(t) = F(t) / m $ \\
+    $a(t) = \ddot{x}(t)$
+\end{center}
+\subsection{Particle Simulation}
+In \textbf{particle simulation}, we perform the following steps:
+\begin{enumerate}
+    \item Initialize position $x$, velocity $v$, and mass $m$ of each particle
+    \item Set the time step $\Delta t$
+    \item Until simulation ends:
+        \begin{enumerate}
+            \item Compute the force $F$ acting on the particle
+            \item For each particle:
+                \begin{itemize}
+                    \item Update the velocity: $v = v + \Delta t \cdot F / m$
+                    \item Update the position: $x = x + \Delta t \cdot v$
+                \end{itemize}
+        \end{enumerate}
+\end{enumerate}
+\newpage
+\subsection{Mass-Spring System}
+In the \textbf{mass-spring system}, we can model complex objects as particle systems connected with springs. The interaction with the environment is modeled by external forces. According to the \textbf{Hooke's law}, a spring in its rest shape with its rest length $r$ does not exert force; otherwise, the force is proportional to the expansion. Defining the spring stiffness with $k$ and its expansion/compression as $x$, we have the following relation:
+\begin{center}
+    $F = k \cdot x$
+\end{center}
+Moreover, defining the spring end points as $x_p$ and $x_q$ respectively, we obtain the following relation:
+\begin{center}
+    $F_p = k \cdot \big(\displaystyle\frac{||x_q - x_p||}{r} - 1\big) \cdot \displaystyle\frac{x_q - x_p}{||x_q - x_p||}$
+\end{center}
+We perform the following steps:
+\begin{enumerate}
+    \item Initialize position $x$, velocity $v$, and mass $m$ of each particle
+    \item Set the time step $\Delta t$
+    \item Define springs: $p, q, r, k$, where $q, p$ are the indices of vertices
+    \item Until simulation ends:
+        \begin{enumerate}
+            \item Initiate the force $F$ acting on the particle
+            \item For each spring:
+                \begin{itemize}
+                    \item Compute the forces exert by the spring on $p$ and $q$
+                    \item Add the forces to $F_p$ and $F_q$
+                \end{itemize}
+            \item For each particle:
+                \begin{itemize}
+                    \item Update the velocity: $v = v + \Delta t \cdot F / m$
+                    \item Update the position: $x = x + \Delta t \cdot v$
+                \end{itemize}
+        \end{enumerate}
+\end{enumerate}
+In case of static particles, the position should not be updated and the velocity should be zero. \\
+Now we can introduce the concept of \textbf{damping}. Defining the damping coefficient as $d$, we have the following relation:
+\begin{center}
+    $\hat{F} = d \cdot \langle\displaystyle\frac{v_q - v_p}{r}, \displaystyle\frac{x_q - x_p}{||x_q - x_p||}\rangle \cdot \displaystyle\frac{x_q - x_p}{||x_q - x_p||}$
+\end{center}
+
+\newpage
+
+% ------------------------- %
+% Appendix A - Fundamentals
+% ------------------------- %
+\section{Appendix A - CG Fundamentals}
+
+\subsection{Trigonometry}
+\subsubsection{Pythagorean Identity}
+For any $ \alpha \in \mathbb{R} $:
+\begin{center}
+    $ sin^2\alpha + cos^2\alpha = 1 $
+\end{center}
+\subsubsection{Half-Angles}
+For any $ \alpha \in \mathbb{R} $:
+\begin{center}
+    $ sin\displaystyle\frac{\alpha}{2} = \sqrt{\displaystyle\frac{1 - cos \ \alpha}{2}} $, \ \ \ \ \ 
+    $ cos\displaystyle\frac{\alpha}{2} = \sqrt{\displaystyle\frac{1 + cos \ \alpha}{2}} $, \ \ \ \ \
+    $ tan\displaystyle\frac{\alpha}{2} = \displaystyle\frac{sin \ \alpha}{1 + cos \ \alpha} $
+\end{center}
+
+\vspace{0.5cm}
+
+\subsection{Linear Algebra}
+\subsubsection{Vectors}
+In vector spaces $\mathbb{R}^n$ with coordinates $x_1, x_2, \dots, x_n$:
+\begin{center}
+    $ x = (x_1, x_2, \dots, x_n)^T $
+\end{center}
+\subsubsection{Matrices}
+A matrix $A \in \mathbb{R}^{mxn}$ with $m$ rows and $n$ columns is an array of $m \cdot n$ real numbers $a_{i,j}$, for $i = 1, \dots, m$ and $j = 1, \dots, n$:
+\begin{center}
+    $\begin{pmatrix}
+        a_{1,1} & a_{1,2} & \dots & a_{1,n} \\
+        a_{2,1} & a_{2,2} & \dots & a_{2,n} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        a_{m,1} & a_{m,2} & \dots & a_{m,n} \\
+    \end{pmatrix}$
+\end{center}
+\subsubsection{Determinant}
+In a 2-by-2 matrix $A \in \mathbb{R}^{2x2}$ is:
+\begin{center}
+    $ det A = det
+    \begin{pmatrix}
+        a_{1,1} & a_{1,2} \\
+        a_{2,1} & a_{2,2} 
+    \end{pmatrix}
+    =
+    \begin{vmatrix}
+        a_{1,1} & a_{1,2} \\
+        a_{2,1} & a_{2,2} 
+    \end{vmatrix}
+    = a_{1,1} \cdot a_{2,2} - a_{1,2} \cdot a_{2,1} $
+\end{center}
+\subsubsection{Normalization}
+The norm of a vector $ x = (x_1, x_2, \dots, x_n)^T \in \mathbb{R}^n $ is:
+\begin{center}
+    $ ||x|| = \sqrt{\displaystyle\sum^n_{i=1}x_i^2} = \sqrt{x_1^2 + x_2^2 + \dots + x_n^2} $ \\
+\end{center}
+To normalize a vector, we can compute:
+\begin{center}
+    $ y = \displaystyle\frac{x}{||x||} \rightarrow ||y|| = 1 $
+\end{center}
+\subsubsection{Dot Product}
+The dot product of two vectors $ x = (x_1, x_2, \dots, x_n)^T \in \mathbb{R}^n $ and $ y = (y_1, y_2, \dots, y_n)^T \in \mathbb{R}^n $ is defined as:
+\begin{center}
+    $ <x,y> = \displaystyle\sum^n_{i = 1}x_i \cdot y_i = x_1 \cdot y_1 + x_2 \cdot y_2 + \dots + x_n \cdot y_n $ \\
+\end{center}
+Denoting the angle between $ x $ and $ y $ by $ \alpha $, we obtain:
+\begin{center}
+    $ <x,y> = cos \ \alpha \cdot ||x|| \cdot ||y||$
+\end{center}
+\subsubsection{Cross Product}
+The cross product of two vectors $x = (x_1, x_2, x_3)^T \in \mathbb{R}^3$ and $y = (y_1, y_2, y_3)^T \in \mathbb{R}^3$ is defined as:
+\begin{center}
+    $ z = x \times y = (z_1, z_2, z_3)^T $, $ z_1 =
+    \begin{vmatrix}
+        x_2 & y_2 \\
+        x_3 & y_3
+    \end{vmatrix}
+    $, $ z_2 = - 
+    \begin{vmatrix}
+        x_1 & y_1 \\
+        x_3 & y_3
+    \end{vmatrix}
+    $ , $ z_3 = 
+    \begin{vmatrix}
+        x_1 & y_1 \\
+        x_2 & y_2
+    \end{vmatrix}
+    $
+\end{center}
+Denoting the angle between $ x $ and $ y $ by $ \alpha $, we obtain:
+\begin{center}
+    $ ||x \times y|| = sin \ \alpha \cdot ||x|| \cdot ||y|| $   
+\end{center}
+
+\end{document}
