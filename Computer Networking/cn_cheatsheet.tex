@@ -1,0 +1,1236 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, graphicx, hyperref}
+\usepackage{fancyvrb, newverbs, xcolor}
+\usepackage{enumitem}
+\usepackage{sectsty}
+
+\definecolor{cverbbg}{gray}{0.93}
+\definecolor{title}{RGB}{4, 109, 156}
+
+\sectionfont{\color{title}}
+\subsectionfont{\color{title}}
+\subsubsectionfont{\color{title}}
+
+\newcommand{\ctexttt}[1]{\colorbox{cverbbg}{\texttt{#1}}}
+\newverbcommand{\cverb}
+  {\setbox\verbbox\hbox\bgroup}
+  {\egroup\colorbox{cverbbg}{\box\verbbox}}
+
+
+\title{Computer Networking Cheatsheet}
+\author{Matteo Alberici}
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        \vspace*{1cm}
+        \Huge
+        \textbf{Computer Networking Cheatsheet}
+        \vspace{0.5cm}
+        \LARGE
+        \vspace{.5cm} \\
+        Matteo Alberici
+   		\vspace{1.5cm}
+        \vfill
+        \vspace{.8cm}
+        \Large
+          Computer Networking 2021\\
+        Computer Science\\
+        USI - Universit\`{a} della Svizzera Italiana, Lugano\\
+    \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+
+% ----------------------------------------------
+% Chapter 1 - Computer Networks and the Internet
+% ----------------------------------------------
+\section{Computer Networks and the Internet}
+
+\subsection{What Is the Internet?}
+\subsubsection{A Nuts-and-Bolts Description}
+A \textbf{computer network} consists of a number of interconnected machines. The Internet is a compound of interconnected networks with billions of devices called \textbf{hosts} or \textbf{end systems} throughout the world. The \textbf{Internet of things (IoT)} describes the network of objects embedded with technologies to connect and exchange data. \\
+Hosts are connected together by \textbf{communication links} and \textbf{packet switches}. Different links can transmit at different \textbf{transmission rates} [bps]. \\
+An host having data to send segments it and adds header bytes, creating \textbf{packets}. Each packet is forwarded to a destination host by a packet switch, which can be either a \textbf{router}, for the network core, or a \textbf{link-layer switch}, for access networks. The sequence of links and switches traversed is called a \textbf{route} or \textbf{path} through the network. \\
+Internet components run \textbf{protocols} that control the sending and receiving of information.
+\subsubsection{A Services Description}
+Internet applications run on hosts and are said to be \textbf{distributed applications} since they involve multiple hosts exchanging data.
+\subsubsection{What Is a Protocol?}
+A protocol defines the \textbf{format} and the \textbf{order} of messages exchanged between communicating devices, as well as the actions taken on events while transmitting.
+
+\subsection{The Network Edge}
+The Internet hosts constitute the \textbf{network edge} and are divided into two categories: \textbf{clients}, such as desktops and smartphones, and \textbf{servers}, which reside in large \textbf{data centers}.
+\subsubsection{Access Networks}
+\textbf{Access Networks} connect an host to an \textbf{edge router}. 
+\newpage
+\subsubsection{Physical Media}
+A \textbf{physical link} lies between transmitter/receiver pairs. \\
+Hosts transmit at full link capacity a message of \textbf{L bits} over a link at a \textbf{rate R} generating a \textbf{transmission delay $ d_{trans} $}. \\
+Physical media can be either \textbf{guided}, if the signal propagates in a solid medium, or \textbf{unguided}, if it propagates freely.
+
+\subsection{The Network Core}
+The \textbf{network core} consists of a mesh of interconnected routers.
+\subsubsection{Packet Switching}
+\subsubsection*{Store-and-Forward Transmission}
+Most switches use \textbf{store-and-forward transmission}, meaning the switch receives the entire packet before it begins to transmit, generating an \textbf{end-to-end delay $ d_{end-to-end} $}.
+\subsubsection*{Queuing Delays and Packet Loss}
+If a link is \textbf{busy}, the arriving packets wait in the link \textbf{output buffer}, generating a \textbf{queuing delay $ d_{queue} $}. If the buffer is full, then \textbf{packet loss} occurs and either the arriving packet or one among the queued ones is dropped.
+\subsubsection*{Forwarding Tables and Routing Protocols}
+Every host has an IP address and when it sends a packet, it includes the destination’s IP address in the packet’s header. Every router has a \textbf{forwarding table} that maps destination addresses to the router’s outbound links: when a packet arrives, the router searches the forwarding table in order to find the appropriate link and forwards the packet. There exist special \textbf{routing protocols} which determine the shortest path from each router and use the results to configure the forwarding tables.
+\subsubsection{Circuit Switching}
+In \textbf{circuit-switched networks}, the resources needed along a path are reserved for the duration of the communication between the hosts. The switches on the path maintain the connection state establishing a \textbf{circuit}.
+\newpage
+\subsubsection*{Multiplexing in Circuit-Switched Networks}
+A circuit is implemented with either \textbf{frequency-division multiplexing (FDM)} or \textbf{time-division multiplexing (TDM)}. In FDM, the link dedicates a frequency band of a certain \textbf{bandwidth} to each connection for its entire duration. In TDM, the link divides time into fixed frames, divided again into slots, and when the connection is established, the network dedicates one slot per frame to the connection.
+\subsubsection{A Network of Networks}
+The Internet is built as a network of networks:
+\begin{itemize}
+    \item \textbf{Network Structure 1}: interconnects all the \textbf{Internet Service Providers (ISPs)} with a single global transit ISP, having the access ISPs as \textbf{customers} and the global one as \textbf{provider}
+    \item \textbf{Network Structure 2}: two-tier hierarchy with providers at the top tier and clients at the bottom tier
+    \item \textbf{Network Structure 3}: clients connect to regional ISPs which then connect to \textbf{tier-1 ISPs}
+    \item \textbf{Network Structure 4}: routers at the same location are grouped by \textbf{PoPs (Points of Presence)} in order to connect to providers, which could connect more providers (\textbf{multi-home}); a third-party company can create an \textbf{IXP (Internet Exchange Point)} where providers can peer together
+    \item \textbf{Network Structure 5}: \textbf{content-provider networks} peer with clients in order to connect to tier-1 ISPs.
+\end{itemize}
+
+\subsection{Delay, Loss, and Throughput in Packet-Switched Networks}
+\subsubsection{Overview of Delay in Packet-Switched Networks}
+As a packet travels from an host to the subsequent one along a path, it suffers from several delays at each host.
+\newpage
+\subsubsection*{Types of Delay}
+\begin{itemize}
+    \item \textbf{Processing Delay $ d_{proc} $}: time required to examine the packet’s header and determine where to direct it
+    \item \textbf{Queuing Delay $ d_{queue} $}: time spent by a packet waiting to be transmitted
+    \item \textbf{Transmission Delay $ d_{trans} $}: time required to transmit all of a packet's bits
+    \item \textbf{Propagation Delay $ d_{prop} $}: time required to propagate from the beginning of the link to the next router
+    \item \textbf{Total Delay $ d_{total} $}: sum of all the delays in a specific host
+\end{itemize}
+Traffic can be either \textbf{periodic}, if every packet finds an empty queue, or \textbf{bursty}, if $ N $ packets arrive every $ (L/R)N $ seconds, but typically, the arrival process is \textbf{random}.
+\subsubsection{Queuing Delay and Packet Loss}
+\subsubsection{End-to-End Delay}
+\subsubsection*{Traceroute}
+\subsubsection{Throughput in Computer Networks}
+The \textbf{end-to-end throughput} is the instantaneous rate at which an host receives data from another host. It corresponds to the transmission rate of the \textbf{bottleneck link}. Today, the throughput constraining factor is typically the access network.
+
+\subsection{Protocol Layers and Their Service Models}
+\subsubsection{Layered Architecture}
+To provide structure to network protocols, designers organize them in \textbf{layers}, each providing specific \textbf{services} used by the upper layers. 
+\newpage
+\subsubsection{Protocol Layering}
+All the protocols from the different layers taken together are called the \textbf{protocol stack}. The Internet protocol stack consists of five layers:
+\begin{itemize}
+    \item \textbf{Application Layer}: where network applications reside; its protocols are distributed over hosts and applications use them to exchange \textbf{messages} with other hosts 
+    \item \textbf{Transport Layer}: passes application layer messages known as \textbf{segments} with a destination address to the network layer
+    \item \textbf{Network Layer}: moves packets known as \textbf{datagrams} from an host to another
+    \item \textbf{Link Layer}: at each node, it receives the network layer datagram known as \textbf{frame} and delivers it to the next node, where it is passed up to the network layer 
+    \item \textbf{Physical Layer}: moves the \textbf{bits} of a frame from one node to another \\
+\end{itemize}
+\includegraphics{layers.png}
+\subsection{Encapsulation}
+Each layer adds some header information to the payload received in the packet \textbf{encapsulating} it.
+
+\newpage
+
+% ----------------------------------------------
+% Chapter 2 - Application Layer
+% ----------------------------------------------
+\section{Application Layer}
+
+\subsection{Principles of Network Applications}
+Creating a network application means writing programs that run on hosts and communicate over the network.
+\subsubsection{Network Application Architectures}
+The application architecture is designed by developers and dictates how the application is structured over the various hosts. \\
+In a \textbf{client-server architecture}, there is an always-on host called the \textbf{server} which services requests from many \textbf{clients} that do not communicate with each other. Since a server may be incapable of keeping up with all the requests, \textbf{data centers} are used to create virtual and powerful servers. \\
+In a \textbf{P2P architecture}, application exploits direct communication between pairs of connected hosts called \textbf{peers}. One important feature is their self-scalability, meaning that they request and provide services to other peers. This architecture is cost effective, but faces challenges of security and reliability due to the decentralized structure.
+\subsubsection{Processes Communication}
+A \textbf{process} is a program running within an host.
+Within the same host, processes communicate through \textbf{inter-process communication}, while in different hosts they communicate by exchanging \textbf{messages}.
+\subsubsection*{Client and Server Process}
+For each pair of communicating processes, the \textbf{client process} is the one that initiates communication, while the \textbf{server process} is the one that waits to be contacted.
+\subsubsection*{The Interface Between the Process and the Computer Network}
+A process exchanges messages through a software interface called a \textbf{socket}, which is the interface between the application layer and the transport layer within an host, also referred to as the \textbf{Application Programming Interface (API)} between the application and the network.
+\subsubsection*{Addressing Processes}
+If a process wants to send a message, it has to know the destination \textbf{IP address} and a \textbf{port number} specifying the receiving process.
+\newpage
+\subsubsection{Transport Services Available to Applications}
+\subsubsection*{Reliable Data Transfer}
+When a transport protocol provides \textbf{reliable data transfer}, the sending process knows that the data sent will arrive with no errors nor loss.
+\subsubsection*{Troughput}
+\textbf{Bandwidth-sensitive applications} need a \textbf{guaranteed available throughput} at a specified rate, while \textbf{elastic applications} make use of whatever throughput they get.
+\subsubsection*{Timing}
+As with throughput, a transport protocol may need to provide \textbf{timing} guarantees in order to avoid long delays.
+\subsubsection*{Security}
+Transport protocols can provide many \textbf{security} services, such as encryption and data integrity.
+\subsubsection{Transport Services Provided by the Internet}
+There exist two Internet \textbf{transport protocols}: the \textbf{Transmission Control Protocol (TCP)} and the \textbf{User Datagram Protocol (UDP)}.
+\subsubsection*{TCP Services}
+\begin{itemize}
+    \item \textbf{Connection-oriented service}: first handshaking to create a \textbf{TCP connection} before exchanging messages
+    \item \textbf{Reliable data transfer}: bytes stream sent is received with no errors nor loss
+    \item \textbf{Flow control}: sender process does not overwhelm the receiver
+    \item \textbf{Congestion control}: sender is throttled if the network is overloaded
+    \item \textbf{NOT provided}: timing, throughput guarantees, and security services
+\end{itemize}
+\subsubsection*{UDP Services}
+UDP is a no-frills, connectionless protocol, meaning there is no handshake.
+It does not provide reliability, flow and congestion control, timing and throughput guarantees, nor security services.
+\subsubsection{Application-Layer Protocols}
+An \textbf{application-layer protocol} defines how processes on different hosts communicate:
+\begin{itemize}
+    \item \textbf{Type}: request or response
+    \item \textbf{Syntax}: what fields are in the messages and how they are delineated
+    \item \textbf{Semantics}: meaning of the information in the fields
+    \item \textbf{Rules}: when and how processes send and respond
+\end{itemize}
+
+\subsection{The Web and HTTP}
+\subsubsection{Overview of HTTP}
+The \textbf{HyperText Transfer Protocol (HTTP)} is at the heart of the web and is implemented both in a client side (\textbf{Web browsers}) and in a server side (\textbf{Web servers}). A \textbf{Web page} consists of a \textbf{base HTML file} and several referenced \textbf{objects}, each addressable by a \textbf{Uniform Resource Locator (URL)}. \\
+HTTP defines how clients request web pages and how servers transfer pages to them:
+\begin{enumerate}
+    \item client initiates a TCP connection to server, port $ 80 $
+    \item server accepts the connection 
+    \item HTTP messages exchanged between the browser and the server
+    \item TCP connection is closed
+\end{enumerate}
+HTTP is a \textbf{stateless protocol} since it maintains no information about the clients.
+\subsubsection{Non-Persistent and Persistent Connections}
+\subsubsection*{HTTP with Non-Persistent Connections}
+In \textbf{non-persistent HTTP}, only one object is sent over each TCP connection; thus, downloading multiple objects requires multiple connections.
+The \textbf{round-trip time (RTT)} is the time that elapses from the client request until the file is received: since there is a three-way handshake before the object is sent, the total time spent is two RTTs plus the the object transmission time.
+\subsubsection*{HTTP with Persistent Connections}
+In \textbf{persistent HTTP}, multiple object are sent over a single TCP connection, thus only one RTT is spent to all the referenced objects.
+\subsubsection{HTTP Message Format}
+\subsubsection*{HTTP Request Message}
+\color{gray}
+GET /somedir/page.html HTTP/1.1 \\ Host: www.someschool.edu \\ Connection: close \\ User-agent: Mozilla/5.0 \\ Accept-language: fr \\\\
+\color{black}
+The first line is called the \textbf{request line} and has three fields: the method, the URL, and the version. Some common methods are \textit{GET}, \textit{POST}, \textit{PUT}, \textit{DELETE}, and \textit{HEAD}. \\
+The subsequent lines are called the \textbf{header lines}, followed by a blank line and by the \textbf{entity body}. 
+\subsubsection*{HTTP Response Message}
+\color{gray}
+HTTP/1.1 200 OK \\ Connection: close \\ Date: Tue, 18 Aug 2015 15:44:04 GMT \\ Server: Apache/2.2.3 (CentOS) \\ Last-Modified: Tue, 18 Aug 2015 15:11:03 GMT \\ Content-Length: 6821 \\ Content-Type: text/html \\ (data data data data data ...) \\\\
+\color{black}
+The first line is called the \textbf{status line} and has three fields: the protocol version, a status code, and a status message. Some common status code are:
+\begin{itemize}
+    \item \textbf{200 OK}: request succeeded
+    \item \textbf{301 Moved Permanently}: requested object has a new URL specified in the \textit{Location} header
+    \item \textbf{400 Bad Request}: request not understood
+    \item \textbf{404 Not Found}: requested document does not exist in the server
+    \item \textbf{505 HTTP Version Not Supported}: HTTP version not supported by the server
+\end{itemize}
+The subsequent lines are \textbf{header lines}, and then there is the \textbf{entity body}.
+\newpage
+\subsubsection{User-Server Interaction: Cookies}
+It is often desirable for a Web server to identify users to restrict user access or to serve content as identity functions: \textbf{Cookies} allow sites to keep track of users.
+Cookies technology has four components: a header line in the HTTP response, a header line in the HTTP request, a file on the user's host managed by the browser, and a back-end database at the Web site.
+\subsubsection{Web Caching}
+A \textbf{Web cache}, also called a \textbf{proxy server}, is a network entity that satisfies HTTP requests on the behalf of an origin Web server. It stores copies of the recently requested objects:
+\begin{enumerate}
+    \item browser establishes a TCP connection to the Web cache and requests the object
+    \item if the Web cache finds it, the object is returned within a response
+    \item otherwise, the Web cache establishes a TCP connection to the origin server and requests the object
+    \item when the object is returned, the Web cache stores a copy and sends it to the client within a response
+\end{enumerate}
+Web caching acts as both client and server at the same time and reduces response times and network traffic. \\
+\subsubsection*{The Conditional GET}
+An object housed in a Web server could have been modified since it was cached: the \textbf{conditional \textit{GET}} mechanism verifies this adding the \textbf{If-Modified-Since} header line in the request to the Web server, which returns the object iff it is no longer the same stored in the cache.
+
+\subsection{Electronic Mail in the Internet}
+The Internet mail system has three major components: \textbf{user agents}, \textbf{mail servers}, and the \textbf{Simple Mail Transfer Protocol (SMTP)}, which uses TCP to transfer emails from clients to servers.
+\subsubsection{SMTP}
+The journey of a message from the sender to receiver is:
+\begin{enumerate}
+    \item sender invokes its user agent providing the receiver email address and instructs it to send a message
+    \item sender's user agent sends the message to the sender's mail server in the \textbf{message queue}
+    \item SMTP client side opens a TCP connection to an SMTP server on the receiver mail server
+    \item the message is sent into the connection to the receiver mail server
+    \item SMTP server side receives the message and the receiver mail server places it in the receiver \textbf{mailbox}
+    \item receiver invokes its user agent to read the message
+\end{enumerate}
+There exist many SMTP commands:
+\begin{itemize}
+    \item \textbf{HELO}: starts the conversation identifying the sender server
+    \item \textbf{EHLO}: starts the conversation with the server using Extended SMTP
+    \item \textbf{MAIL FROM}: sender states the mail address in the \textit{from} field
+    \item \textbf{RCPT TO}: identifies the receiver
+    \item \textbf{SIZE}: informs the receiver server about the mail size
+    \item \textbf{DATA}: email content starts to be transferred
+    \item \textbf{VRFY}: server verifies if an address exists
+    \item \textbf{TURN}: inverts roles between client and server
+    \item \textbf{AUTH}: client authenticates to the server
+    \item \textbf{RSET}: alerts the server that the transmission is terminating
+    \item \textbf{EXPN}: asks for a confirmation about the identification of a mailing list
+    \item \textbf{HELP}: client requests useful information
+    \item \textbf{QUIT}: terminates the conversation
+\end{itemize}
+Along with the commands, there exist some reply codes fore SMTP:
+\begin{itemize}
+    \item \textbf{$ 2.y.z $} : command sent and completed successfully
+    \item \textbf{$ 3.y.z $} : command accepted but not completed due to missing information
+    \item \textbf{$ 4.y.z $} : command not accepted due to a temporary problem (such as low storage space)
+    \item \textbf{$ 5.y.z $} : command not accepted due to an unrecoverable reason (such as a non-existing address)
+\end{itemize}
+\subsubsection{Mail Message Format}
+\color{gray}
+From: alice@crepes.fr \\ To: bob@hamburger.edu \\ Subject: Searching for the meaning of life. \\\\
+\color{black}
+A mail message consists of some header lines, a blank line, and the message body.
+\subsubsection{Mail Access Protocol}
+There are two common ways to retrieve a message in the mail server: if the receiver is using a Web-based or smartphone app, then the user agent will use HTTP; otherwise, the protocol used is \textbf{Internet Mail Access Protocol (IMAP)}.
+
+\subsection{DNS - The Internet Directory Service}
+\subsubsection{Services Provided by DNS}
+Internet's \textbf{domain name system (DNS)} is a directory service that translates hostnames into IP addresses. It is a distributed database implemented in a hierarchy of \textbf{DNS servers} and an application-layer protocol running on UDP that allow hosts to query the database. \\
+If an host wants to send an HTTP request, it needs to know the Web server's IP address:
+\begin{enumerate}
+    \item user machine runs the DNS application client side
+    \item browser extracts the hostname by the URL and passes it to the DNS client side
+    \item DNS client sends a query with the hostname to a DNS server
+    \item DNS server eventually replies with the IP address
+    \item browser receives the IP address and opens a TCP connection
+\end{enumerate}
+DNS provide a few other services:
+\begin{itemize}
+    \item \textbf{Host aliasing}: DNS can retrieve an host's \textbf{canonical name} given one of its alias names
+    \item \textbf{Mail server aliasing}: DNS can retrieve a mail server's canonical name by one of its alias names
+    \item \textbf{Load distribution}: busy sites are replicated over multiple servers with a set of IP addresses associated that rotate to distribute the traffic
+\end{itemize}
+\subsubsection{Overview of How DNS Works}
+A centralized design with a single DNS server does not scale:
+\begin{itemize}
+    \item if the server crashes, then Internet does the same
+    \item the server should handle all DNS queries
+    \item the server could not be close to all the querying clients
+    \item the server should keep records for all the Internet hosts
+\end{itemize}
+\subsubsection*{A Distributed, Hierarchical Database}
+DNS uses several servers in hierarchical structure distributed around the world:
+\begin{itemize}
+    \item \textbf{Root DNS server}: copies of 13 different servers; they provide TLD servers IP addresses
+    \item \textbf{Top-level domain (TLD) servers}: there exists a TLD server for each TLD domain; they provide the authoritative DNS servers IP addresses
+    \item \textbf{Authoritative DNS servers}: an organization with publicly accessible hosts provides accessible DNS records mapping the hostnames to IP addresses, housed in authoritative DNS servers
+\end{itemize}
+The \textbf{local DNS server} does not belong to the hierarchy and forwards the DNS queries from the hosts that are closed to it. \\
+\begin{center}
+    \includegraphics[width=10cm]{dns.png}
+\end{center}
+Queries can be described in two categories: the \textbf{iterative queries} return either the response or returns the server to ask, while the \textbf{recursive queries} put burden of name resolution on the contacted name server.
+\subsubsection*{DNS Caching}
+In a query chain, a DNS server can store a hostname/IP address reply in its local memory.
+After some \textbf{time to live (TTL)}, cache entries timeout and disappear.
+\subsubsection{DNS Records and Messages}
+DNS servers store \textbf{resource records (RRs)}, which are four-tuples with the format: \\
+\color{gray}
+(Name, Value, Type, TTL)
+\color{black} . \\
+The meaning of \color{gray} Name \color{black} and \color{gray} Value \color{black} depend on \color{gray} Type\color{black}:
+\begin{itemize}
+    \item \color{gray}Type A\color{black}: \color{gray}Name \color{black} is a hostname and \color{gray}Value \color{black} is the IP address of the hostname
+    \item \color{gray}Type NS\color{black}: \color{gray}Name \color{black} is a domain and \color{gray}Value \color{black} is the hostname of an authoritative server which can retrieve the IP address for hosts in the domain
+    \item \color{gray}Type CNAME\color{black}: \color{gray}Name \color{black} is an alias hostname and \color{gray}Value \color{black} is the canonical name for the alias name
+    \item \color{gray}Type MX\color{black}: \color{gray}Name \color{black} is mail server alias name and \color{gray}Value \color{black} is the canonical name for the alias name
+\end{itemize}
+\subsubsection*{DNS Message}
+The semantics of the DNS message fields are:
+\begin{itemize}
+    \item \textbf{Header section}, $ 12 $ bytes:
+    \begin{itemize}
+        \item $ 16 $ bits: query identifier
+        \item $ 1 $ bit: indicates if the message is a query $(0)$ or a reply $(1)$
+        \item $ 1 $ bit: authoritative flag
+        \item $ 1 $ bit: recursion-desired flag
+        \item $ 1 $ bit: recursion-available flag
+    \end{itemize}
+    \item \textbf{Question section}:
+        \begin{itemize}
+            \item Name field
+            \item Type field
+        \end{itemize}
+    \item \textbf{Answer section}: resource records for the queried name
+    \item \textbf{Authority section}: authoritative servers records
+    \item \textbf{Additional section}: other helpful records
+\end{itemize}
+
+\subsection{Peer-to-Peer File Distribution}
+\subsubsection{Scalability of P2P Architectures}
+The \textbf{distribution time $ D_{cs} $} is the time spent to get a copy of a file distributed among some peers.
+\subsubsection*{BitTorrent}
+\textbf{BitTorrent (BT)} is a communication protocol for P2P file sharing which enables users to distribute data in a decentralized manner. It is used to transfer large digital video or audio files with BitTorrent \textbf{clients}.
+\textbf{Trackers} provide a list of available files and peers, known as \textbf{seeds}. \\
+Peers in a torrent download equal-size chunks from one another and upload chunks to them. Each peer requires the missing chunks in a \textbf{rarest first} manner and sends chunks to the others that are sending it chunks at highest rate. At some time, a peer is \textbf{optimistically unchoked}, meaning that it is selected randomly by a peer and starts to receive chunks, maybe finding a new top-provider.
+
+\subsection{Video Streaming and Content Distribution Networks}
+Videos are sequence of images compressed to a bit-rate: the higher it is, the better the image quality. \\
+\subsubsection{Internet Video}
+Prerecorded videos are stored on servers and users send requests to view them \textbf{on demand}. \\
+There are two methods to encode videos:
+\begin{itemize}
+    \item \textbf{Spacial coding}: instead of sending $ N $ values of the same type, the values sent are the type and the number of occurrences 
+    \item \textbf{Temporal coding}: instead of sending the frame $ i + 1 $, only differences from frame $ i $ are sent
+\end{itemize}
+Videos can be encoded at a \textbf{Constant Bit Rate (CBR)}, with a fixed rate, or at a \textbf{Variable Bit Rate (VBR)}, with a rate changing depending on space and time.
+\subsubsection{HTTP Streaming and DASH}
+In \textbf{Dynamic Adaptive Streaming over HTTP (DASH)}, videos are encoded into several versions each with a different bit rate and URL provided by a \textbf{manifest file}. Clients measure server-to-client bandwidth and determines when to request a chunk, what rate to request, and where to request the chunk.
+\subsubsection{Content Distribution Networks}
+\textbf{Content Distribution Networks (CDNs)} are use to distribute massive amounts of video data to users around the world. It may be a \textbf{private CDN}, owned by by the provider, or a \textbf{third-party CDN}, distributing on behalf of multiple providers. \\
+Two server placement strategies can be adopted:
+\begin{itemize}
+    \item \textbf{Enter deep}: pushes CDN servers deep into many access networks, being closer to users
+    \item \textbf{Bring home}: less larger clusters in Internet Exchange Points (IXPs) and Points of Presence (POP) near access networks
+\end{itemize}
+\subsubsection*{CDN Operation}
+\begin{enumerate}
+    \item user visits a Web page and clicks a link
+    \item user's host sends a DNS query
+    \item user's Local DNS Server (LDNS) relays the query to an authoritative DNS server which returns a hostname in the domain
+    \item query enters the domain private DNS infrastructure and a second query to retrieve the content server IP address is sent
+    \item LDNS forwards the IP address to the user's host
+    \item client establishes a TCP connection with the server and issues an HTTP request for the video
+\end{enumerate}
+\begin{center}
+    \includegraphics[width=10cm]{video_streaming.png}
+\end{center}
+\subsubsection{Cluster Selection Strategies}
+A \textbf{cluster selection strategy} is a mechanism for directing clients to a server cluster within the CDN. After learning an IP address, the CDN needs to select a cluster and employs proprietary cluster selection strategies such as assigning the client to the closest cluster or determining the best one based on the traffic conditions.
+
+\newpage
+
+% ----------------------------------------------
+% Chapter 3 - Transport Layer
+% ----------------------------------------------
+\section{Transport Layer}
+
+\subsection{Introduction and Transport-Layer Services}
+A transport-layer protocol provides \textbf{logical communication} between application processes on different hosts: the sender breaks messages into segments and passes them to the network layer, while the receiver reassembles segments into messages and passes them to the application layer.
+\subsubsection{Relationship Between Transport and Network Layers}
+The main difference is that in network-layer the \textbf{Internet Protocol (IP)} provides a best-effort delivery service (no guarantees) in logical communication between hosts instead of processes.
+\subsubsection{Overview of the Transport Layer in the Internet}
+Both TCP and UDP provide integrity checking with error detection and multiplexing, but neither of them provide delay nor bandwidth guarantees.
+
+\subsection{Multiplexing and Demultiplexing}
+Extending the host-to-host delivery to process-to-process delivery is fundamental for all computer networks. \\
+The source hosts gather data from different sockets and encapsulates it with header information creating segments for the network layer in a process called \textbf{multiplexing}. The receiving host transport layer examines segments fields to identify the correct receiving socket in a process called \textbf{demultiplexing}. \\
+Every segment has a \textbf{source port number field} indicating the source application and a \textbf{destination port number field} specifying the appropriate receiving socket.
+\subsubsection*{Connectionless Multiplexing and Demultiplexing}
+When creating a UDP socket segment, the sender specifies the destination IP address and the destination port number; then, the receiver checks the port number and directs the segment to the corresponding socket.
+\subsubsection*{Connection-Oriented Multiplexing and Demultiplexing}
+A TCP socket is identified by a 4-tuple:
+\begin{itemize}
+    \item source IP address
+    \item source port number
+    \item destination IP address
+    \item destination port number
+\end{itemize}
+The receiver uses all the 4 values to direct the segment.\\
+A server may support many simultaneous TCP sockets.
+
+\subsection{Connectionless Transport: UDP}
+Some applications are better suited for UDP:
+\begin{itemize}
+    \item Finer application-level control on what and when data is sent, thus packages and passes data immediately
+    \item No connection establishment, thus does not introduce delay
+    \item No connection state, thus more activities at the same time
+    \item Small packet header overhead ($8$ bytes)
+\end{itemize}
+\subsubsection{UDP Segment Structure}
+The UDP header has four $2$-bit fields: the source and destination port numbers, the segment length, and the \textbf{checksum} for error detection.
+\subsubsection{UDP Checksum}
+The checksum determines whether segment bits have been altered: the UDP sender side performs 1s complement on the sum of all the $16$ bits words in the segment (overflow is wrapped around); at the receiver, all $16$ bits words are added, including the checksum and, if a bit is a $0$, then errors occurred. \\
+If the segment is altered such that the sum remains constant, the checksum will not detect the error.
+
+\subsection{Principles of Reliable Data Transfer}
+The problem of a \textbf{reliable data transfer protocol} is that the layers below it may be unreliable.
+The sending side of the protocol is invoked by \verb|rdt_send()| and with \verb|deliver_data()| it passes the data to the upper layer at the receiving side, which calls \verb|rdt_rcv()| when a packet arrives on the receiving channel. \\
+Both the sender and receiver sides may send segments with an \textbf{unreliable data transfer protocol} by calling \verb|udt_send()|.
+\subsubsection{Building a Reliable Data Transfer Protocol}
+\subsubsection*{Reliable Data Transfer over a Perfectly Reliable Channel: rdt1.0}
+In the protocol \textbf{rdt 1.0}, the \textbf{finite state machines (FSMs)} define one state for both the sender and the receiver.
+\includegraphics[width=7cm]{fnm1.png}
+\subsubsection*{Reliable Data Transfer over a Channel with Bit Errors: rdt2.0}
+Protocol \textbf{rtd 2.0} shows a more realistic model based on an \textbf{Automatic Repeat reQuest (ARQ)} protocol:
+\begin{itemize}
+    \item \textbf{Error detection}: errors are detected and eventually corrected through the checksum field
+    \item \textbf{Receiver feedback}: receiver sends back positive (\textbf{ACK}) or negative (\textbf{NAK}) acknowledgment packets
+    \item \textbf{Retransmission}: packets received in error are sent again
+\end{itemize}
+\includegraphics[width=7cm]{fnm2.png}
+Protocol rdt 2.0 is a \textbf{stop-and-wait} protocol since the sender does not send new data until it receives an ACK packet.
+If the acknowledgment packet is corrupted, then the sender sends the packet again until a correct ACK is received, introducing duplicate packets into the channel. The solution is to add a field for a \textbf{sequence number} allowing the receiver to determine whether the packet has already been received or not.
+Protocol \textbf{rtd 2.1} handles this problem:
+\includegraphics[width=7cm]{fnm3.png}
+Protocol \textbf{rtd 2.2} sends an ACK packet instead of a NAK, meaning that it sends the same ACK packet twice for a duplicated packet:
+\includegraphics[width=7cm]{fnm4.png}
+\subsubsection*{Reliable Data Transfer over a Channel with Bit Errors: rdt3.0}
+In protocol \textbf{rdt 3.0}, the underlying channel can lose packets; thus, a \textbf{countdown timer} is started each time a packet is sent and, if after some time the ACK packet has not been received, then the sender retransmits the packet:
+\includegraphics[width=7cm]{fnm5.png}
+\subsubsection{Pipelined Reliable Data Transfer Protocols}
+The problem of rdt3.0’s performance is that it is a stop-and-wait protocol: the sender \textbf{utilization $ U_{sender} $} is very low compared with the transmitting time.
+The solution is \textbf{pipelining}, which is sending multiple packets before having to wait for acknowledgments.
+\subsubsection{Go-Back-N (GBN)}
+In a \textbf{Go-Back-N (GBN)} protocol, the sender sends multiple packets without acknowledgment, but with a maximum of $ N $ unacknowledged packets in the pipeline. \\
+Given that the \textbf{base} is the oldest acknowledged sequence number and that \textbf{nextseqnum} is the smallest unused sequence number:
+\begin{itemize}
+    \item $ [0, $ base $ - 1] $ : packets already transmitted and acknowledged
+    \item $ [ $base, nextseqnum $ - 1] $ : packets transmitted but not acknowledged
+    \item $ [ $nextseqnum, base $ + \ N - 1] $ : packets available to send
+    \item $ \geq $ base $ + \ N ] $ : packets unavailable at the time
+\end{itemize}
+Since a single packet error could cause the retransmission of many packets, the \textbf{selective repeat} method is used to allow the receiver to individually acknowledge specific packets.
+
+\subsection{Connection-Oriented Transport: TCP}
+\subsubsection{The TCP Connection}
+TCP is a \textbf{connection-oriented} protocol since before sending data, processes must handshake with each other. It provides a \textbf{full-duplex} service, meaning that data from host A to host B flows as data from B to A, and is \textbf{point-to-point}, meaning that it is between a single pair sender/receiver. \\ Since three segments are sent between the hosts, the connection-establishment is a \textbf{three-way handshake}. Once the connection is established and the data has been sent, TCP directs it to the \textbf{send buffer}, from where it will be grabbed and passed to the network layer. The amount of data that can be grabbed an placed in a segment is limited by the \textbf{maximum segment size (MSS)}, which is based on the largest frame possible, called the \textbf{maximum transmission unit (MTU)}.
+\subsubsection{TCP Segment Structure}
+A TCP segment consists of data fields, containing a data chunk, and header fields, such as port numbers, checksum, and more:
+\begin{itemize}
+    \item \textbf{Sequence number}, $32$ bits
+    \item \textbf{Acknowledgment number}, $34$ bits
+    \item \textbf{Receive window}, $16$ bits
+    \item \textbf{Length}, $4$ bits 
+    \item \textbf{Options}: used when sender and receiver negotiate the MSS
+    \item \textbf{Flag}, $6$ bits
+\end{itemize}
+\subsubsection*{Sequence Numbers and Acknowledgment Numbers}
+The sequence number for a segment is the \textbf{byte-stream number} of the \textbf{first byte} in the segment, while the acknowledgment number is the sequence number of the next byte the host is expecting. \\ TCP provides \textbf{cumulative acknowledgment}, meaning that it acknowledges bytes up to the first missing byte in the stream.
+\subsubsection{Round-Trip Time Estimation and Timeout}
+\subsubsection*{Estimating the Round-Trip Time}
+The \textbf{SampleRTT} is the amount of time between when a segment is sent and its acknowledgment. It is measured at some point in time on a single-transmission segment.
+TCP maintains a sample RTT average value called \textbf{EstimatedRTT}. \\ The new value of \verb|EstimatedRTT| is a weighted combination of its previous value and the new \verb|SampleRTT|.
+It is an \textbf{exponential weighted moving average (EWMA)}, meaning an average that puts more weight on recent samples. \\
+It is valuable to have a measure of the \textbf{DevRTT}, which is an EWMA indicating the RTT variation.
+\subsubsection*{Setting and Managing the Retransmission Timeout Interval}
+The \textbf{timeout interval} should be greater than the \verb|EstimatedRTT|, or unnecessary retransmissions would be sent, but not too much larger, or TCP would not quickly retransfer a lost segment. An initial \verb|TimeoutInterval| value of $1$ second is recommended. \\ When a timeout occurs, the TimeoutInterval value is doubled in order to avoid a premature timeout for a subsequent segment.
+It is computed every time a segment is received and the \verb|EstimatedRTT| is updated.
+\subsubsection{Reliable Data Transfer}
+\begin{enumerate}
+    \item TCP receive data from an application, encapsulates it in a segment, and passes it to IP starting the timer
+    \item TCP responds to a timeout retransmitting the segment that caused it and restarts the timer
+    \item TCP compares the ACK value received with its \textbf{SendBase} variable holding the sequence number of the oldest unacknowledged byte and either acknowledges a new segment or restarts the timer
+\end{enumerate}
+\subsubsection{Flow Control}
+TCP provides \textbf{flow control} in order to eliminate the receiver's buffer overflowing. The sender maintains a \textbf{rwnd} variable with the free \textbf{RcvBuffer} space and the following variables are defined:
+\begin{itemize}
+    \item \textbf{LastByteRead}: number of the last byte read from the receiver buffer
+    \item \textbf{LastByteRcvd}: number of the last byte arrived at the receiver buffer
+\end{itemize}
+The sender keeps track of two different variables: \textbf{LastByteSent} and \textbf{LastByteAcked}.
+\subsubsection{TCP Connection Management}
+The three-way handshake needs three steps:
+\begin{enumerate}
+    \item client-side TCP sends a \textbf{SYN segment} to the server-side TCP containing a \verb|SYN| bit set to $1$
+    \item server-side TCP extracts the segment, allocates buffers and variables, and sends back a connection-granted \textbf{SYNACK segment}
+    \item client-side allocates buffers and variables and sends a segment with \verb|SYN| set to $0$
+\end{enumerate}
+
+\subsection{Principles of Congestion Control}
+\textbf{Congestion} happens when there is too much data traffic for the network to handle.
+\subsubsection{The Causes and the Costs of Congestion}
+Causes and costs of congestion need some insights:
+\begin{itemize}
+    \item Throughput never exceeds capacity
+    \item Delay increases as the maximum capacity is approached
+    \item Packet loss and retransmission decrease the throughput
+    \item Unneeded duplicates decrease the throughput
+    \item Upstream transmission capacity and buffering are wasted for packets lost downstream
+\end{itemize}
+\subsubsection{Approaches to Congestion control}
+Congestion-control approach is based on whether the network layer assists the transport layer:
+\begin{itemize}
+    \item \textbf{End-to-end}: no support from the network and TCP decreases its window size according to packet loss
+    \item \textbf{Network-assisted}: routers provide feedbacks about congestion
+\end{itemize}
+
+% ----------------------------------------------
+% Chapter 4 - The Network Layer: Data Plane
+% ----------------------------------------------
+\section{The Network Layer: Data Plane}
+\subsection{Overview of Network Layer}
+The network layer transports segment between hosts: the sender encapsulates segments into datagrams and passes them to the link layer, while the receiver delivers segments to the transport layer.
+\subsubsection{Forwarding and Routing: The Data and Control Planes}
+Two important functions can be identified:
+\begin{itemize}
+    \item \textbf{Forwarding}: routers must move arriving packets to the appropriate output link using \textbf{forwarding tables} with links interfaces
+    \item \textbf{Routing}: the packets' path through the network is determined by some \textbf{routing algorithms}
+\end{itemize}
+\subsubsection*{Control Plane: The Traditional Approach}
+The \textbf{Data Plane} is a per-router function that determines how datagrams arriving to routers' input port are forwarded to the output port, while the \textbf{control plane} is a network wide logic determining how datagrams are routed along their path. \\ In the traditional approach, routing algorithms are implemented in routers.
+\subsubsection*{Control Plane: The SDN Approach}
+In the \textbf{software-defined network (SDN)} approach, the controller which computes forwarding tables and interacts with routers is implemented in software.
+\subsubsection{Network Service Model}
+The \textbf{network service model} defines the end-to-end packets delivery characteristics:
+\begin{itemize}
+    \item \textbf{Guaranteed delivery}: a packet source will eventually arrive at destination
+    \item \textbf{Guaranteed delivery with bounded delay}: packets are delivered within a specified delay bound
+    \item \textbf{In-order packet delivery}: packets arrive in the order that they were sent
+    \item \textbf{Guaranteed minimal bandwidth}: as long as packets are transmitted below a specified bit rate, then they eventually arrive to destination
+    \item \textbf{Security}: datagrams can be encrypted at the source and decrypted at destination
+\end{itemize}
+The Internet's network layer only provides a \textbf{best-effort service}, where there is no guarantee at all but some reflections:
+\begin{itemize}
+    \item Simplicity has made Internet widely deployed adopted
+    \item Sufficient provisioning of bandwidth allows sufficient performances
+    \item Replicated application-layer services allow services to be provided from multiple locations
+    \item Congestion control helps
+\end{itemize}
+
+\subsection{What's Inside a Router}
+Four router components can be identified:
+\begin{itemize}
+    \item \textbf{Input ports}: terminates an incoming physical link, performs link-layer functions to operate with the one on the other side, and consults the forwarding table to move the packet
+    \item \textbf{Switching fabric}: connects input ports to output ports
+    \item \textbf{Output ports}: stores packets and transmits them on the appropriate link
+    \item \textbf{Routing processor}: executes routing protocols and computes or receives forwarding tables
+\end{itemize}
+Let's consider the information required for packet forwarding:
+\begin{itemize}
+    \item \textbf{Destination-based forwarding}: forwarding process is based only on destination IP address
+    \item \textbf{Generalized forwarding}: forwarding process is based on any set of field values
+\end{itemize}
+\subsubsection{Input Port Processing and Destination-Based Forwarding}
+When looking for a forwarding table entry, if there are more matching values, the \textbf{longest prefix match} is chosen and the packet is forwarded to the associated interface.
+\subsubsection{Switching}
+\textbf{Switching fabric} transfers packets from input links to output link at  specific \textbf{switching rate} in different manners:
+\begin{itemize}
+    \item \textbf{Switching via memory}: packet copied to processor's memory, then the destination address is extracted and copied to the appropriate output port's buffer
+    \item \textbf{Switching via bus}: input ports pre-pend a switch-internal label and transfer packets via a bus to all the output ports, where it is either kept or discarded
+    \item \textbf{Switching via interconnection network}: a crossbar switch connects $N$ input ports to $N$ output ports through $2N$ buses and closes crosspoints while transferring packets 
+\end{itemize}
+\subsubsection{Output Port Processing}
+Output port processing takes packet stored in its memory and transmits them, including selecting and dequeuing functions.
+\subsubsection{Where Does Queuing Occur?}
+\subsubsection*{Input Queuing}
+If the switch fabric is slower than input ports combined, queuing may occur at input queues, eventually implying queuing delays and packet loss. \\ If a queued datagram at the front of the queue prevents others from moving forward even with different output link associated, then \textbf{head-of-line (HOL) blocking} occurs. 
+\subsubsection*{Output Queuing}
+At output buffers, \textbf{buffering} is required when datagrams arrive from a switch fabric which is faster than the link transmission rate, eventually implying congestion and packet loss: when there is not enough space, packets are drop depending on the policy adopted, which is either \textbf{drop-tail} or \textbf{drop-priority}. \\ Every time that a packet is transferred, a \textbf{packet scheduler} must choose packets to transmits among those queued. \\ A larger buffer is not always the best option, since delays could increase with too much buffering and performances could be lowed by long RTTs.
+\subsubsection{Packet Scheduling}
+\textbf{Packet scheduling} is the operation of deciding which packets to send next on a link.
+\subsubsection*{First-in-First-Out (FIFO)}
+In FIFO scheduling, also known as \textbf{FCFS}, packets are transmitted in the order that they arrive to the output port.
+\subsubsection*{Priority Queuing}
+In \textbf{priority scheduling}, packets are classified by priority classes: the transmitting order is based on the packets priority value.
+\subsubsection*{Round Robin and Weighted Fair Queuing (WFQ)}
+In \textbf{round robin (RR)} scheduling, arriving packets are queued by class: the server cyclically and repeatedly scans the queues sending one complete packet for each of them in turn. \\ The \textbf{weighted fair queuing (WFQ)} works as the RR scheduling, but each class gets a weighted amount of service in each cycle, with a minimum bandwidth guarantee per class.
+
+\subsection{The Internet Protocol (IP): IPv4, Addressing, IPv6, and More}
+\subsubsection{IPv4 Datagram Format}
+The \textbf{IPv4} datagram fields are:
+\begin{itemize}
+    \item \textbf{Version number}, $4$ bits: IP protocol version
+    \item \textbf{Header length}, $4$ bits: where the payload begins
+    \item \textbf{Type of service (TOS)}: distinguishes datagrams from each other
+    \item \textbf{Datagram length}, $16$ bits: total datagram length
+    \item \textbf{Identifier}, \textbf{flags}, \textbf{fragmentation offset}: three fields having to do with fragmentation
+    \item \textbf{Time-to-live (TTL)}
+    \item \textbf{Protocol}: indicates the transport-layer protocol to which the datagram must be passed
+    \item \textbf{Header checksum}: aids routers in detecting bit errors
+    \item \textbf{Source and destination IP addresses}
+    \item \textbf{Options}: more options needed by the datagram
+    \item \textbf{Data}: contains the payload
+\end{itemize} 
+\subsubsection{IPv4 Addressing}
+The boundary between the host and its physical link is called an \textbf{interface} and has a unique IP address. \\ An IPv4 address is $32$ bits long, meaning that there are $2^{32}$ possible addresses, and written in \textbf{dotted-decimal notation}. \\ Detaching an interface from its host creating an island of isolated networks, with the interface terminating their end points means identifying a \textbf{subnet}. \\ Internet's address assignment is known as \textbf{Classless Interdomain Routing (CIDR)}: the IP address is divided into two parts and has the format \verb|a.b.c.d/x|, where \verb|x| indicates the first part bits number and the \verb|x| most significant bits constitutes the \textbf{prefix}. \\ Before CIDR, \textbf{classful addressing} divided subnets with 24-, 16-, and 8-bit addresses into \textbf{classes A}, \textbf{B}, and \textbf{C} respectively. \\ If a datagram is sent to the \textbf{broadcast address} \verb|255.255.255.255|, it is delivered to all hosts in the subnet.
+\subsubsection*{Obtaining a Host Address: The Dynamic Host Configuration Protocol}
+Hosts address are configured by the \textbf{Dynamic Host Configuration Protocol (DHCP)}: an host obtains an IP address from a network when it joins it. The four steps are:
+\begin{enumerate}
+    \item \textbf{DHCP server discovery}: client broadcasts a \textbf{DHCP discover message} containing an IP address of \verb|0.0.0.0|
+    \item \textbf{DHCP serve offers}: server broadcasts a \textbf{DHCP offer message} containing the proposed IP address and a \textbf{lease time} for it
+    \item \textbf{DHCP request}: client responds to the best offer with a \textbf{DHCP request message} containing the connection parameters
+    \item \textbf{DHCP ACK}: server responds with a \textbf{DHCP ACK message} confirming the parameters
+\end{enumerate}
+\subsubsection{Network Address Translation (NAT)}
+With \textbf{Network Address Translation (NAT)}, all devices in a private network have 32-bit addresses in a private address space and they can be changed without notifying the outside world. The NAT router must:
+\begin{itemize}
+    \item replace the outgoing datagrams IP source address and port number with the NAT IP address and a new port number
+    \item record every translation pair in a \textbf{NAT translation table}
+    \item replace the incoming datagrams NAT IP destination address and port number with the corresponding IP address and port number stored in the NAT table
+\end{itemize}
+The NAT router appears as a single device with a single IP address to the rest of the world.
+\subsubsection{IPv6}
+\subsubsection*{IPv6 Datagram Format}
+There are some important changes in the format:
+\begin{itemize}
+    \item \textbf{Expanded addressing capabilities}: IP addresses size increased to 128 bits and introduced the \textbf{anycast address}, which can deliver a datagram to any one of a group of hosts
+    \item \textbf{Header length}: many fields have been dropped or made optional allowing faster processing
+    \item \textbf{Flow labeling}: differentiates among the flows depending on their type
+\end{itemize}
+The following fields are defined:
+\begin{itemize}
+    \item \textbf{Version}: IP version number
+    \item \textbf{Traffic class}: gives priority to a certain type of datagrams 
+    \item \textbf{Flow label}: identifies a flow of datagrams
+    \item \textbf{Payload length}
+    \item \textbf{Next header}: protocol to which the data field must be delivered
+    \item \textbf{Hop limit}: decrements by one at each router forwarding the datagram
+    \item \textbf{Source and destination addresses}
+    \item \textbf{Data}
+\end{itemize}
+Some IPv4 fields are no longer present:
+\begin{itemize}
+    \item \textbf{Fragmentation}: no intermediate fragmentation for speed up forwarding
+    \item \textbf{Checksum}: redundant because of transport- and link- layers checksums
+    \item \textbf{Options}: one of the possible next headers pointed to from within the header
+\end{itemize}
+\subsubsection{Transitioning from IPv4 to IPv6}
+The transition approach involves \textbf{tunneling}: a \textbf{tunnel} is an IPv4 router connected to IPv6 nodes. The sender node puts the IPv6 datagram in the data field of an IPv4 datagram, the router forwards it as a normal datagram, and the receiver extracts the IPv6 datagram.
+
+\subsection{Generalized Forwarding and SDN}
+In \textbf{generalized forwarding} each router contains a \textbf{flow table} which works with a "\textbf{match + action}" abstraction. \\ \textbf{OpenFlow} is a communications protocol that gives access to the forwarding plane of a switch or a router. 
+\subsubsection{Match}
+OpenFlow's match is made on a set of selected fields.
+\subsubsection{Action}
+The most important actions are:
+\begin{itemize}
+    \item \textbf{Forwarding}: packets can be forwarded, broadcasted, multicasted, encapsulated, and more
+    \item \textbf{Dropping}: no entry means that a matched packet must be dropped
+    \item \textbf{Modify-field}: fields values may be re-written before the packet is forwarded
+\end{itemize}
+
+\subsection{Middleboxes}
+A \textbf{middlebox} is an intermediary box performing functions apart from standard ones on a network path. They provide three services:
+\begin{itemize}
+    \item \textbf{NAT translation}: NAT boxes implement private network addressing
+    \item \textbf{Security}: \textbf{firewalls} block traffic based on field values or redirect packets for additional processing, e-mail filters block dangerous mails, intrusion detection systems (IDSs) detect predetermined patterns and filter packets
+    \item \textbf{Performance}: compression, caching, load balancing of requests to servers
+\end{itemize}
+They were initially proprietary hardware solutions, but nowadays they are \textbf{whiteboxes} implementing open APIs with programmable local actions. \\ With the \textbf{network function virtualization (NFV)} approach, services for computation, networking, and storage are implemented over whiteboxes. 
+
+% ----------------------------------------------
+% Chapter 5 - The Network Layer: Contorl Plane
+% ----------------------------------------------
+\section{The Network Layer: Control Plane}
+\subsection{Introduction}
+There are two approaches for computing forwarding and flow tables:
+\begin{itemize}
+    \item \textbf{Per-router control}: each router has a component communicating with the others to compute the tables
+    \item \textbf{Logically centralized control}: logically centralized controller computes and distributes the tables
+\end{itemize}
+
+\subsection{Routing Algorithms}
+\textbf{Routing algorithms} determine the fastest and least congested path through the network and are formulated using graphs. A \textbf{graph $ G = (N, E)$} is a set of $ N $ nodes and a collection of $ E $ edges.
+One way to classify algorithms is:
+\begin{itemize}
+    \item \textbf{Centralized}: takes as input the connectivity between all nodes and all link costs, which are global state information (\textbf{link-state -LS- algorithms})
+    \item \textbf{Decentralized}: there is no global state information and the calculation is carried out in an iterative, distributed manner
+\end{itemize}
+A second way to classify them is:
+\begin{itemize}
+    \item \textbf{Static}: routes change slowly over time
+    \item \textbf{Dynamic}: routes change quickly in response to topology or link costs
+\end{itemize}
+\subsubsection{The Link-State (LS) Routing Algorithm}
+\textbf{Dijkstra's algorithm} is a centralized, iterative algorithm that computes the $k$ best paths for $k$ nodes after $k$ iterations:
+\begin{Verbatim}[commandchars=\\\{\}]
+\textcolor{blue}{Initialization:}
+N' = {u}    \textcolor{gray}{# computes the shortest paths from u to all other nodes}
+for all nodes v
+  if v adjacent to u    \textcolor{gray}{# u only knows path costs to its neighbors}
+    D(v) = c\textsubscript{u,v}    \textcolor{gray}{# set the estimated shortest path to v}
+\textcolor{blue}{Loop for all nodes in N':}
+find w not in N' such that D(w) is a min
+add w to N'
+update D(v) for all nodes adjacent to w and not in N':
+    \textcolor{red}{D(v) = min(D(v), D(w) + c\textsubscript{w,v})}
+\end{Verbatim}
+Since at each iteration it needs to check all the nodes not in $N'$, the complexity is $O(n^2)$, but there is a more efficient implementation with a complexity of $O(nlogn)$.
+\subsubsection{The Distance-Vector (DV) Routing Algorithm}
+The \textbf{distance-vector (DV) algorithm} is an iterative, distributed, and self-stopping algorithm in which every node sends its own estimated distance vector to its neighbors (when it changes), which update their own DV using the \textbf{Bellman-Ford equation} and notify their neighbors if necessary.
+\begin{Verbatim}[commandchars=\\\{\}]
+At each node x:
+\textcolor{blue}{Initialization:}
+for all destinations y in N:
+  D\textsubscript{x}(y) = c(x,y)    \textcolor{gray}{# inf if y is not a neighbour}
+for each neighbor w:
+  D\textsubscript{w}(y) = ? for all y in N
+for each neighbor w:
+  send D\textsubscript{x} = [D\textsubscript{x}(y): y in N] to w
+\textcolor{blue}{Loop:}
+  \textcolor{blue}{wait} until something happens
+  for each y in N
+    D\textsubscript{x}(y) = min\textsubscript{v}{c(x,v) + D\textsubscript{v}(y)}
+\textcolor{blue}{if} D\textsubscript{x}(y) changed for any y
+  send D\textsubscript{x} = [D\textsubscript{x}(y): y in N] to all neighbors
+\textcolor{blue}{forever}
+\end{Verbatim}
+\subsubsection*{A Comparison of LS and DV Routing Algorithms}
+\begin{itemize}
+    \item \textbf{Message complexity}
+        \begin{itemize}
+            \item LS: $ n $ routers $ = O(n^2)$ messages sent
+            \item DV: convergence time varies
+        \end{itemize}
+    \item \textbf{Speed of convergence}
+        \begin{itemize}
+            \item LS: $ O(n^2) $, but may have oscillations
+            \item DV: routing loops and count-to-infinity problem
+        \end{itemize}
+    \item \textbf{Robustness}
+        \begin{itemize}
+            \item LS: each router computes its own table and advertise incorrect links costs
+            \item DV: routers can advertise incorrect paths costs and their tables are used by others
+        \end{itemize}
+\end{itemize}
+
+\subsection{Intra-AS Routing in the Internet: OSPF}
+LS and DV algorithms assume all routers identical in a flat networks.
+An \textbf{autonomous system (AS)} consists of a group of routers under the same administrative control that runs the same routing algorithm, which is called an \textbf{intra-autonomous system} protocol.
+\subsubsection{Open Shortest Path First (OSPF)}
+The \textbf{Open Shortest Path First (OSPF)} is a link-state protocol that uses flooding of link-state information and Dijkstra's algorithm in order to construct a complete topological map of the AS.
+Some of the advantages are:
+\begin{itemize}
+    \item \textbf{Security}: all messages are authenticated to prevent malicious intrusion
+    \item \textbf{Multiple same-cost paths}: multiple same-cost paths are used at same time
+    \item \textbf{Integrated support}: multicast OSPF (MOSPF) adds a new type of link-state advertisement
+    \item \textbf{Support for hierarchy within a single AS}: an AS can be configured hierarchically into areas, each running its own algorithm, and with a backbone area which routes traffic between the others
+\end{itemize}
+
+\subsection{Routing Among the ISPs: BGP}
+All ASs run the same \textbf{inter-autonomous system routing protocol} known as \textbf{Border Gateway Protocol (BGP)} and is "\emph{the glue that keeps the Internet together}".
+\subsubsection{The Role of BGP}
+BGP provides to each router a means to:
+\begin{itemize}
+    \item \textbf{Obtain prefix reachability information from neighboring ASs}: allows each subnet to advertise its existence to the Internet
+    \item \textbf{Determine the best routes to the prefixes}: best route is determined based on policy and reachability information
+\end{itemize}
+\subsubsection{Advertising BGP Route Information}
+For each AS, each router is either a \textbf{gateway router}, connected to other ASs, or an \textbf{internal router}, connecting routers within an AS.
+BGP routers exchange messages over a semi-permanent TCP connection called a \textbf{BGP connection}.
+The messages types are:
+\begin{itemize}
+    \item \textbf{OPEN}: opens a BGP connection and authenticates the sender
+    \item \textbf{UPDATE}: advertises new paths or withdraw old ones
+    \item \textbf{KEEPALIVE}: acknowledges the OPEN request and keep the connection alive
+    \item \textbf{NOTIFICATION}: reports error in messages or closes the connection
+\end{itemize}
+\subsection{Determining the Best Routes}
+A router advertising a prefix over a BGP connection includes with it \textbf{BGP attributes}. The two most important attributes are: \textbf{AS-PATH}, indicating the ASs traversed by the prefix advertisement, and \textbf{NEXT-PATH}, indicates to a specific router the next-hop AS.
+\subsubsection*{Hot Potato Routing}
+In \textbf{hot potato routing}, the route chosen is that with the least cost to the \verb|NEXT-HOP| router beginning that route. 
+
+\subsection{The SDN Control Plane}
+
+\subsection{ICMP: The Internet Control Message Protocol}
+The \textbf{Internet Control Message Protocol} is used by nodes to communicate network-level information. An ICMP message consists of:
+\begin{itemize}
+    \item Type
+    \item Code: ICMP subtype
+    \item Checksum: calculated over ICMP header and data
+    \item Data: copy of the ICMP header and at least $8$ bytes of IP data
+\end{itemize}
+
+\newpage
+
+
+\section{The Link Layer and LANs}
+\subsection{Introduction to the Link Layer}
+We refer to any device that runs a link-layer protocol as a \textbf{node}, such as hosts and routers, and to communication channels between adjacent nodes as \textbf{links}.
+A transmitting node encapsulates the datagram in a \textbf{link-layer frame} and transmits the frame into the link.
+\subsubsection{The Services Provided by the Link Layer}
+Provided services can vary from one link-layer protocol to the next:
+\begin{itemize}
+    \item \textbf{Framing}: encapsulating each datagram within a link-layer frame consisting of a data field, in which the network-layer datagram is inserted, and a number of header fields
+    \item \textbf{Link access}: a medium access control (MAC) protocol specifies the rules by which a frame is transmitted and coordinates the transmissions if many nodes share a broadcast link
+    \item \textbf{Reliable delivery}: each network-layer datagram is moved without error with acknowledgments and retransmissions
+    \item \textbf{Error detection} and correction: the transmitting node includes error-detection bits in the frame and the receiving node performs an error check
+\end{itemize}
+\subsubsection{Where Is the Link Layer Implemented?}
+The link layer is implemented on a chip called the \textbf{network adapter}, also known as \textbf{network interface controller (NIC)}, which can implement many services such as framing and link access.
+On the sending side, the controller takes a datagram created and stored in host memory by the higher layers, encapsulates it in a link-layer frame, and transmits it into the communication link.
+On the receiving side, a controller receives the entire frame and extracts the network-layer datagram.
+
+\subsection{Error-Detection and -Correction Techniques}
+At the sending node, data D to be protected is augmented with error-detection and -correction bits EDC.
+At the receiving node, a sequence of bits D! and EDC! is received and may differ from the original as a result of in-transit bit flips.
+The receiver may detect bit errors, but there still may be \textbf{undetected bit errors} allowing the receiver to deliver a corrupted datagram to the network layer.
+\subsubsection{Parity Checks}
+The simplest form of error detection is the inclusion of a single \textbf{parity bit}: in even parity schemes, its value is chosen such that the number of 1s in the d + 1 bits is even, while in odd parity schemes, it is chosen such that there is an odd number of 1s.
+The receiver counts the 1s in the received bits and if an odd number is found with an even parity scheme, it knows that an odd number of bit errors occurred.
+If an even number of bit errors occur, it would result in an undetected error.
+Errors are often clustered together in bursts and the probability of undetected errors with single-bit parity can approach 50\%.
+In \textbf{two-dimensional parity scheme}, the d bits are divided into i rows and j columns and a parity value is computed for each of them: the resulting i + j + 1 parity bits comprise the link-layer frame’s error-detection bits.
+If a single bit error occurs, the parity of both the column and the row containing the flipped bit will be in error and the receiver can use the indices to identify and correct the corrupted bit.
+The ability of the receiver to both detect and correct errors is known as \textbf{forward error correction (FEC)}.
+It decreases the number of sender retransmissions required and allow for immediate correction of errors at the receiver.
+\subsubsection{Checksumming Methods}
+In checksumming techniques, the d bits are treated as a sequence of k-bit integers.
+One simple checksumming method sums the integers and use the result as the error-detection bits.
+The receiver checks the checksum by taking the 1s complement of the sum of the received data, indicating an error if any of the resulting bits are 1.
+\subsubsection{Cyclic Redundancy Check (CRC)}
+A technique used widely in computer networks is based on \textbf{cyclic redundancy check (CRC)} codes, also known as polynomial codes.
+Consider the initial d bits: sender and receiver must first agree on an r + 1 bit pattern, known as a \textbf{generator G}, with the most significant bit = 1.
+The sender appends the r bits to the d bits such that the d + r bit pattern is divisible by G using modulo-2 arithmetic.
+The receiver divides the d + r bits by G and if the remainder is nonzero, an error occurred.
+All calculations are done in modulo-2 arithmetic without carries or borrows, meaning that addition and subtraction are identical and are equivalent to the exclusive-or.
+
+\subsection{Multiple Access Links and Protocols}
+A \textbf{point-to-point link} consists of a single sender at one end of the link and a single receiver at the other end.
+A \textbf{broadcast link} can have multiple sending and receiving nodes connected to a single broadcast channel and when a node transmits a frame, each of the others receives a copy.
+Computer networks have protocols called \textbf{multiple access protocols} by which nodes regulate transmissions into the broadcast channel.
+All of the nodes receive multiple frames at the same time, meaning that frames \textbf{collide} at all of the receivers and are lost.
+It is possible to classify any multiple access protocol in three categories: \textbf{channel partitioning protocols}, \textbf{random access protocols}, and \textbf{taking-turns protocols}.
+A protocol for a broadcast channel of rate R bps should have the following characteristics: 
+\begin{enumerate}
+    \item a single node having data to send has a throughput of R bps
+    \item each of M nodes having data to send has an average throughput of R/M bps
+    \item the protocol is decentralized, meaning that there is no master node representing a point of failure for the network 
+    \item the protocol is simple and inexpensive to implement
+\end{enumerate}
+\subsubsection{Channel Partitioning Protocols}
+Time-division multiplexing (TDM) and frequency-division multiplexing (FDM) can be used to partition a broadcast channel’s bandwidth. TDM divides time into \textbf{time frames} and again into \textbf{time slots}, each assigned to one node. Whenever a node has a packet to send, it transmits during its assigned time slot in the revolving TDM frame. Each node gets a dedicated transmission rate of R/N bps during each frame time, but there are two drawbacks: a node is limited to that average rate even if it is the only node with packets to send and a node must always wait for its turn in the transmission sequence. FDM divides the channel rate into different frequencies, each with a bandwidth of R/N, and assigns each of them to one node creating smaller channels of R/N bps. FDM shares both the advantages and drawbacks of TDM. A third partitioning protocol is \textbf{code division multiple access (CDMA}). It assigns a different code to each node, which uses it to encode the data bits to send. CDMA networks have the property that different nodes can transmit simultaneously having their respective receivers correctly receive encoded data bits in spite of interfering transmissions by other nodes.
+\subsection{Random Access Protocols}
+The second broad class of multiple access protocols are random access protocols. A transmitting node always transmits at the full rate of the channel and when there is a collision each node involved retransmits its frame waiting a random delay.
+\subsubsection*{Slotted ALOHA}
+The simplest random access protocols is the \textbf{slotted ALOHA} protocol.
+Let's assume the following: 
+\begin{itemize}
+    \item all frames consist of L bits
+    \item time is divided into slots of L/R seconds
+    \item nodes start to transmit frames only at the beginnings of slots
+    \item nodes are synchronized so that each node knows when the slots begin
+    \item all nodes detect a collision event before the slot ends
+    \item if a node has a frame to send waits until the beginning of the next slot
+    \item if there isn’t a collision, the node has successfully transmitted its frame
+    \item if there is a collision, the node detects the collision before the end of the slot and the frame is retransmitted in each subsequent slot with probability p until there is not a collision
+\end{itemize}
+This protocol allows a node to transmit at the full rate R when that node is the only active node.
+It is highly decentralized since each node detects collisions and independently decides when to retransmit.
+\subsubsection{Taking-Turns Protocols}
+The \textbf{polling protocol} designs a node as a master node which \textbf{polls} each node in a round-robin fashion.
+The master node sends a message to a node allowing its transmission up to a number of frames, eliminating collisions and empty slots that plague random access protocols.
+The protocol has a few drawbacks: it introduces a polling delay, which is the amount of time required to notify a node, and if the master node fails, the channel becomes inoperative.
+Another protocol is the \textbf{token-passing protocol}, where a special-purpose frame known as a \textbf{token} is exchanged among the nodes in a fixed order.
+When a node receives a token, it holds onto it if it has some frames to transmit, sends up to a maximum number of frames, and forwards the token to the next node.
+There are a few drawbacks: the failure of one node can crash the channel and if a node accidentally neglects to release the token, then some recovery procedure must be invoked.
+\subsubsection{DOCSIS: The Link-Layer Protocol for Cable Internet Access}
+The \textbf{Data-Over-Cable Service Interface Specifications (DOCSIS)} specifies the cable data network architecture and its protocols, using FDM to divide the downstream and upstream network segments into multiple frequency channels. A downstream channel is 24 MHz to 192 MHz wide with a max throughput of 1.6 Gbps, while each upstream channel is 6.4 MHz to 96 MHz wide with a max throughput of 1 Gbps. Each channel is a broadcast channel: frames transmitted on the downstream channel are received by all cable modems receiving that channel with no access problem, while in the upstream direction multiple modems share the same channel and collisions can occur. The CMTS grants permission to individual cable modems to transmit during specific mini-slots by sending a MAP message on a downstream channel specifying which modem can transmit. The mini-slot-request frames are transmitted in a random access manner and so may collide with each other and when a collision is inferred, a modem uses binary exponential backoff to defer the retransmission.
+
+\subsection{Switched Local Area Networks}
+\subsection{Link-Layer Addressing and ARP}
+\subsubsection*{MAC Addresses}
+A host with multiple network interfaces will have multiple link-layer addresses and IP addresses associated with it, while link-layer switches do not have link-layer addresses associated with their interfaces connected to hosts since carrying datagrams between hosts is done without the hosts having to explicitly address the frame to the intervening switch.
+A link-layer address is called a \textbf{LAN address}, a \textbf{physical address}, or a \textbf{MAC address}, and is 6 bytes long, each expressed as a pair of hexadecimal numbers.
+No two adapters have the same address: when a company wants to manufacture adapters, it purchases a chunk of the address space consisting of 224 addresses which are allocated by IEEE fixing the first 24 bits of a MAC address and letting the company create unique combinations of the last 24 bits for each adapter. 
+An adapter’s MAC address has a flat structure and never changes.
+An adapter inserts the destination MAC address into a frame and then sends it into the LAN.
+A switch can broadcast the incoming frame onto all of its interfaces, having an adapter receiving a frame that isn’t addressed to it.
+If there is a match between the frame and the destination address, the adapter extracts the enclosed datagram and passes it up the protocol stack, otherwise the frame is discarded.
+If an adapter wants all the other adapters to receive a frame inserts a special \textbf{MAC broadcast address}.
+\subsubsection*{Address Resolution Protocol (ARP)}
+Since there are both network-layer addresses and link-layer addresses, the Internet \textbf{Address Resolution Protocol (ARP)} translates between them.
+An ARP module in a sending host takes an IP address on the same LAN as input and returns the corresponding MAC address.
+Each host has an \textbf{ARP table} containing mappings of IP addresses to MAC addresses and a \textbf{time-to-live (TTL}) value indicating when each mapping will be deleted from the table.
+If the ARP table doesn’t have an entry for the destination, the sender constructs a special packet called an \textbf{ARP packet}, which includes the sending and receiving IP and MAC addresses, to query all the other hosts to determine the MAC address corresponding to the resolved IP address.
+\subsubsection{Ethernet}
+\subsubsection*{Ethernet Frame Structure}
+The sending adapter encapsulates the IP datagram within an Ethernet frame and passes it to the physical layer, while the receiving adapter receives the frame from the physical layer, extracts the IP datagram, and passes it to the network layer.
+The Ethernet frame fields are:
+\begin{itemize}
+    \item Data field (46 to 1,500 bytes): carries the IP datagram; if it exceeds 1,500 bytes, then the host has to fragment the datagram, while if it is less than 46 bytes, the data field has to be stuffed
+    \item Destination address (6 bytes): contains the MAC address of the destination adapter
+    \item Source address (6 bytes): contains the MAC address of the adapter transmitting the frame onto the LAN
+    \item Type field (2 bytes): permits to multiplex network-layer protocols
+    \item Cyclic redundancy check (CRC) (4 bytes): allows the receiving adapter to detect bit errors in the frame
+    \item Preamble (8 bytes): the first 7 bytes of the preamble wake up the receiving adapters and synchronize their clocks to that of the sender’s one, while the last 2 bits of the last byte alert the receiver that the data is coming
+Ethernet technologies provide connectionless service to the network layer, meaning without first handshaking, and an unreliable service to the network layer.
+\end{itemize}
+
+\subsubsection{Link-Layer Switches}
+Switches receive incoming link-layer frames and forward them, being \textbf{transparent} to the hosts.
+They have buffers, since the rate at which frames arrive to a switch output interface may exceed the link capacity of that interface.
+\subsubsection*{Forwarding and Filtering}
+\textbf{Filtering} determines whether a frame should be forwarded or dropped.
+\textbf{Forwarding} determines the interfaces to which a frame should be directed and moves the frame to those interfaces.
+Both the functions are done with a switch table containing entries for some of the hosts on a LAN: an entry contains a MAC address, the switch interface that leads toward that MAC address, and the time at which the entry was placed in the table.
+Suppose a frame with destination address DD-DD-DD-DD-DD-DD arrives at the switch on interface x, then there are three possible cases:
+\begin{itemize}
+    \item no entry: the switch broadcasts the frame 
+    \item entry exists with x: there being no need to forward the frame to any of the other interfaces, the switch performs the filtering function by discarding the frame
+    \item entry exists with y: the switch performs the forwarding function by putting the frame in an output buffer preceding interface y
+\end{itemize}
+\subsubsection*{Self-Learning}
+Switches are \textbf{self-learning}, meaning that the tables are built automatically, dynamically, and autonomously:
+\begin{enumerate}
+    \item switch table is initially empty 
+    \item for each frame received on an interface, the switch stores in its table the MAC address, the interface from which the frame arrived, and the current time
+    \item an address is deleted if no frames are received with that address as the source address after a period called the \textbf{aging time}
+\end{enumerate}
+Switches are \textbf{plug-and-play} devices, since they require no intervention from a network administrator or user, and full-duplex, meaning any switch interface can send and receive at the same time.
+\subsubsection*{Properties of Link-Layer Switching}
+\begin{itemize}
+    \item Elimination of collisions: switches buffer frames and never transmit more than one frame on a segment at any time
+    \item Heterogeneous links: since a switch isolates one link from another, the different links in the LAN can operate at different speeds and can run over different media
+    \item Management: switches ease network management, for example by detecting a malfunctioning adapter or gathering statistics on bandwidth usage, collision rates, and traffic types
+\end{itemize}
+\subsubsection*{Switches Versus Routers}
+A switch is different from a router in that it forwards packets using MAC addresses. Whereas a router is a layer-3 packet switch, a switch is a layer-2 packet switch.
+Pro and cons of switches:
+\begin{enumerate}[label=+]
+    \item plug-and-play
+	\item high filtering and forwarding rates
+	\item process frames only up through layer 2
+\end{enumerate}	
+\begin{enumerate}[label=-]
+	\item large ARP tables and substantial ARP traffic
+	\item susceptible to broadcast storms
+\end{enumerate}	
+Pro and cons of routers:
+\begin{enumerate}[label=+]
+	\item packets do not cycle through routers even if the network has redundant paths
+	\item allowed the Internet to be built with a rich topology
+	\item firewall protection against layer-2 broadcast storms
+\end{enumerate}	
+\begin{enumerate}[label=-]
+	\item process datagrams up through layer 3
+	\item not plug-and-play
+	\item larger per-packet processing time
+\end{enumerate}	
+Switches suffice for small networks as they localize traffic and increase aggregate throughput without requiring any IP address configuration, while larger networks include routers.
+\subsubsection{Virtual Local Area Networks (VLANs)}
+Three drawbacks can be identified in LAN configuration:
+\begin{itemize}
+    \item Lack of traffic isolation: broadcast traffic traverses the entire institutional network and limiting its scope would improve LAN performance and could be required for privacy
+    \item Inefficient use of switches: if each group were small, then a single switch would be large enough to accommodate everyone, but it would not provide traffic isolation
+    \item Managing users: if an employee moves between groups, the physical cabling must be changed to connect the employee to a different switch
+\end{itemize}
+
+\section{Wireless and Mobile Networks}
+\subsection{Introduction}
+In a wireless network, the following elements can be identified:
+\begin{itemize}
+    \item Wireless hosts: end-systems that run applications
+    \item Wireless links: connects a host to a base station or to another host 
+    \item Base station: sends and receives data to and from associated hosts, which are within the communication distance and uses the base to relay data, and are referred to as operating in infrastructure mode
+    \item Network infrastructure: larger network with which a host may wish to communicate
+\end{itemize}
+In ad hoc networks, hosts have no infrastructure with which to connect, so they provide for services such as routing and address assignment.
+When a mobile host moves into the range of another base station, it changes its point of attachment in a process referred to as handoff or handover. 
+It is possible to classify wireless networks according to two criteria based on the number of hops crossed by a packet and on the existence of an infrastructure:
+\begin{itemize}
+    \item Single-hop, infrastructure-based: the base station is connected to the larger wired network and all communication is between the base station and a host over a single wireless hop
+    \item Single-hop, infrastructure-less: no base station connected to a wireless network and one host may coordinate the transmissions of the others
+    \item Multi-hop, infrastructure-based: the base station is wired to the larger network and some hosts may have to relay their communication through others to reach it
+    \item Multi-hop, infrastructure-less: no base station exists and hosts may have to relay messages among several other nodes to reach a destination; nodes may be mobile with connectivity changing among hosts (mobile ad hoc networks - MANETs), or vehicles (vehicular ad hoc network - VANET)
+\end{itemize}
+
+\subsection{Wireless Links and Network Characteristics}
+Wireless links differ from their wired counterparts in different ways: 
+\begin{itemize}
+    \item Decreasing signal strength: electromagnetic radiation attenuates as it passes through matter; in free space, the signal strength decreases due to path loss
+    \item Interference from other sources: radio sources transmitting in the same frequency band and electromagnetic noise within the environment can result in interference
+    \item Multipath propagation: occurs when portions of the electromagnetic wave reflect off objects and the ground, taking paths of different lengths between a sender and receiver and resulting in the blurring of the received signal
+\end{itemize}
+Wireless link protocols employ powerful CRC error detection codes and link-level reliable-data-transfer protocols that retransmit corrupted frames.
+A host receives an electromagnetic signal as a combination of a degraded form of the original signal transmitted by the sender and background noise in the environment: the signal-to-noise ratio (SNR) is a relative measure of its strength.
+There are several physical-layer characteristics important in understanding wireless communication protocols:
+\begin{itemize}
+    \item the higher the SNR, the lower the bit error rate (BER); a sender can increase the SNR by increasing its transmission power and decrease the probability that a frame is received in error
+    \item a modulation technique with a higher bit transmission rate has a higher BER
+    \item dynamic selection of the physical-layer modulation technique is used to adapt the modulation technique to channel conditions: SNR and BER due to mobility or changes in the environment
+\end{itemize}
+Suppose that station A is transmitting to station B and that station C is transmitting to B.
+With the hidden terminal problem, physical obstructions in the environment may prevent A and C from hearing each other’s transmissions.
+With the signal's strength fading, collisions at the receiver may be undetectable. 
+\subsubsection{CDMA}
+When hosts communicate over a shared medium, a protocol is needed so that the multiple signals do not interfere.
+These protocols are divided into three classes: channel partitioning, random access, and taking turns.
+\textbf{Code division multiple access (CDMA)} belongs to channel partitioning protocols.
+In a CDMA protocol, each bit is encoded by multiplying the bit by a signal that changes at a faster rate known as the \textbf{chipping rate}.
+Let di be the value of the data bit for the i-th bit slot and let's represent the data bit with a 0 value as -1.
+Each bit slot is further subdivided into M mini-slots: the CDMA code consists of a sequence of M values each taking a +1 or -1 value.
+For the m-th mini-slot of the bit-transmission time of di, the
+output of the CDMA encoder is the value of di multiplied by by the m-th bit in the assigned CDMA code: 
+%Zi, m = di · cm .
+With no interfering senders, the receiver would receive the encoded bits and recover the original data bit by computing: 
+%di = 1/M · Σ1M Zi, m · cm .
+
+\subsection{WiFi: 802.11 Wireless LANs}
+\subsubsection{The 802.11 Wireless LAN Architecture}
+The fundamental component of the 802.11 architecture is the \textbf{basic service set (BSS)}, which contains one or more wireless stations and a central base station, known as an access point (AP).
+Each station has a 6-byte MAC address in the adapter's firmware.
+Each AP also has a MAC address for its wireless interface.
+As with Ethernet, these MAC addresses are administered by IEEE and are (in theory) globally unique. 
+LANs that deploy APs are referred to as \textbf{infrastructure wireless LANs}.
+Stations can also group themselves together to form an ad hoc network without a central control nor connections to the “outside world, formed “on the fly,” by devices in proximity to each other.
+\subsubsection*{Channels and Association}
+A wireless station needs to associate with an AP before sending or receiving data.
+When a administrator installs an AP, a one- or two-word \textbf{Service Set Identifier (SSID)} and a channel number are assigned to it.
+Channel number 802.11 defines 11 partially overlapping channels in the frequency range of 2.4 GHz to 2.4835 GHz.
+Any two channels are non-overlapping iff they are separated by four or more channels.
+A \textbf{WiFi jungle} is a physical location where a station receives a sufficiently strong signal from two or more APs.
+To gain Internet access, devices need to join one of the subnets and to \textbf{associate} with one AP.
+Devices perform \textbf{passive scanning}: APs periodically send \textbf{beacon frames}, each including their SSID and MAC address, and the devices scans the 11 channels, seeking beacon frames from any APs.
+The algorithm for selecting which of the available APs to associate with is left up to the designers.
+Devices can also perform \textbf{active scanning} by broadcasting a probe frame that will be received by all APs within the device’s range, generating a probe response frame. 
+After selecting the AP, devices send an association request frame, and the AP responds with an association response frame.
+This second handshake is needed with active scanning, since after the first probe request an AP doesn’t know which of the responding APs the device will choose.
+Once associated with an AP, the device sends a DHCP discovery message into the subnet via the AP in order to obtain an IP address and to join it.
+A device may be required to authenticate itself to the AP, which communicates with an authentication server relaying information with the device using a protocol such as RADIUS or DIAMETER.
+\subsubsection{The 802.11 MAC Protocol}
+Once a device is associated with an AP, it can start sending and receiving data frames, but since multiple devices or the AP itself may want to transmit frames at the same time over the same channel, a multiple access protocol is needed.
+The designers chose a random access protocol referred to as \textbf{CSMA with collision avoidance (CSMA/CA)}: each station senses the channel before transmitting and refrains from transmitting when the channel is sensed busy.
+802.11 uses collision-avoidance techniques and a link-layer acknowledgment/retransmission (ARQ) scheme.
+There are two important reasons for not implementing collision detection:
+\begin{itemize}
+    \item requires the ability to send the station’s own signal and receive to determine whether another station is transmitting at the same time and since the signal strength is very small compared with Ethernet, it is costly to build hardware that can detect a collision 
+    \item even if the adapter could transmit and listen at the same time, it would not be able to detect all collisions due to the hidden terminal problem and fading
+\end{itemize}
+Once a station begins to transmit, it transmits the frame in its entirety.
+When the destination receives a frame that passes the CRC, it waits a short period of time known as \textbf{Short Inter-frame Spacing (SIFS)} and sends back a \textbf{link-layer acknowledgment frame}.
+If the transmitting station does not receive an acknowledgment within a given amount of time, it assumes that an error has occurred and retransmits the frame.
+If an acknowledgment is not received after a given number of retransmissions, the transmitting station discards the frame. 
+Suppose that a station has a frame to transmit:
+\begin{enumerate}
+    \item if the station senses the channel idle, it transmits its frame after a short period of time known as \textbf{Distributed Inter-frame Space (DIFS)}
+    \item otherwise, the station chooses a random value using binary exponential backoff and counts down after DIFS; while the channel is sensed busy, the counter is frozen
+    \item when the counter reaches zero, the station transmits the entire frame and waits for an acknowledgment
+    \item if an acknowledgment is received, the frame has been correctly received and if the station has another frame to send, it begins the CSMA/CA protocol at step 2; if the acknowledgment isn’t received, the transmitting station reenters the backoff phase in step 2 with a larger interval
+\end{enumerate}
+Let’s consider a scenario in which two stations have a frame to transmit, but neither station transmits immediately since each senses a already transmitting station.
+Both the stations would each transmit as they detect that the third station has finished causing a collision.
+In CSMA/CD, both stations would abort the transmissions avoiding useless transmissions of the remainders.
+In 802.11, if the stations sense the channel busy, they enter random backoff hopefully choosing different values and once the channel becomes idle, one station will transmit before the other, while the “losing station” will hear the other's signal, freeze its counter, and refrain from transmitting.
+Collisions can still occur if the two stations are hidden from each other, or they choose close enough random backoff values.
+\subsubsection*{Dealing with Hidden Terminals: RTS and CTS}
+Let’s consider two stations and one access point, both within range of an AP and associated with it.
+Due to fading, each station is hidden from the other.
+Suppose station H1 is transmitting a frame and, halfway through the transmission, station H2 wants to send a frame.
+Since H2 does not hear H1's transmission, it will wait a DIFS interval and then transmit the frame, resulting in a collision. The channel will be wasted during the entire period of H1 and H2’s transmissions.
+The IEEE 802.11 protocol allows a station to use a short \textbf{Request to Send (RTS)} control frame and a short \textbf{Clear to Send (CTS)} control frame to reserve access to the channel: when a station wants to send a frame, it can first send an RTS frame indicating the total time required to transmit the data frame and the ACK frame.
+When the AP receives the RTS frame, it responds by broadcasting a CTS frame which gives the sender permission to send and also instructs the other stations not to send for the duration. 
+RTS and CTS frames can improve performance in two ways: 
+\begin{itemize}
+    \item hidden station problem is mitigated, since a long frame is transmitted after the channel has been reserved
+    \item since they are short, a collision will last only for the duration of the frame and once they are transmitted, the following data and ACK frames should be transmitted without collisions
+\end{itemize}
+The RTS/CTS exchange introduces delay and consumes channel resources, thus it is only used for long data frames: each wireless station can set an RTS threshold such that the RTS/CTS sequence is used only when the frame is longer than the threshold.
+\subsubsection*{Using 802.11 as a Point-to-Point Link}
+If two nodes have a directional antenna, they can point them at each other and run the 802.11 protocol over a point-to-point link.
+\subsubsection{7.3.3 The IEEE 802.11 Frame}
+802.11 frame contains some specific fields:
+%immagine
+\subsubsection*{Payload and CRC Fields}
+The payload can be as long as 2,312 bytes (typically < 1,500 bytes) and consists of an IP datagram or an ARP packet.
+\subsubsection*{Address Fields}
+The frame has four address fields, each holding a 6-byte MAC address:
+\begin{itemize}
+    \item Address 1: MAC address of the station that receives the frame
+    \item Address 2: MAC address of the station that transmits the frame
+    \item Address 3: MAC address of the router interface connecting the subnet with other subnets
+    \item Address 4: used when APs forward frames to each other in ad hoc mode
+\end{itemize}
+\subsubsection{Sequence Number, Duration, and Frame Control Fields}
+Since acknowledgments can get lost, a station may send multiple copies of a frame.
+The sequence number field allow the receiver to distinguish between a newly transmitted frame and a retransmission.
+The time for which the channel is reserved is stored in the duration field.
+The control field includes many subfields:
+\begin{itemize}
+    \item Type, Subtype: distinguish the association, RTS, CTS, ACK, and data frames
+    \item to, from: define the meanings of the different address fields
+    \item WEP: indicates whether encryption is being used or not 
+\end{itemize}
+\subsubsection{Mobility in the Same IP Subnet}
+In order to increase the physical range of a wireless LAN, it is possible to deploy multiple BSSs within the same IP subnet. 
+This raises the issue of mobility among the BSSs: when stations move between subnets, some mobility management protocols will be needed.
+If a router moves to another BSS, then it would have to obtain a new IP address in the subnet and the address change would disrupt any on-going TCP connections.
+Otherwise, as the station wanders away from the first AP, it starts to scan for a stronger signal and receives beacon frames from a second AP.
+The station disassociates with the first AP and associates with the new one keeping its IP address and maintaining its ongoing TCP sessions. 
+Since switches are “self-learning”, they can handle occasional moves.
+\subsubsection{Advanced Features in 802.11}
+\subsubsection*{802.11 Rate Adaptation}
+Suppose that a user becomes mobile, walking away from the base station, with the SNR falling as the distance from the base station increases: if the modulation technique does not change, the BER will become unacceptably high and eventually no transmitted frames will be received.
+Some implementations have a rate adaptation capability that selects the underlying physical-layer modulation technique to use based on current channel characteristics.
+If a station sends two frames in a row without receiving an acknowledgment, the transmission rate falls back to the next lower rate.
+\subsubsection*{Power Management}
+The 802.11 standard provides power-management capabilities that allow stations to minimize the amount of time that their sense, transmit, receive functions and other circuitry need to be on.
+A station alternates between sleep and wake states and indicates to the access point that it will be going to sleep by setting the power-management bit in the header of a frame to 1.
+A timer in the station is then set to wake it up just before the AP is scheduled to send its beacon frame.
+The AP buffers any frames destined for the sleeping host for later transmission.
+\subsubsection{Personal Area Networks: Bluetooth}
+\textbf{Bluetooth} networks operate over short ranges at low power and at low cost and are referred to as \textbf{wireless personal area networks (WPANs)} or \textbf{piconets}. 
+They operate in the unlicensed 2.4 GHz Industrial, Scientific and Medical (ISM) radio band along with other home appliances.
+The Bluetooth wireless channel is operated in a TDM manner with time slots of $625 \ \mu s$ and, during each of them, a sender transmits on one of 79 channels, with the frequency changing in a pseudo-random manner.
+This form of channel hopping is known as \textbf{frequency-hopping spread spectrum (FHSS)} and is used so that interference will only occur with communications in at most a subset of the slots.
+Bluetooth data rates can reach up to 3 Mbps. 
+Bluetooth networks are ad hoc networks with one device designated as master and the others as clients.
+The master determines the slot-to-slot frequency hopping sequence, controls entry of the clients, controls the power at which client transmit, and uses polling to grant clients permission to transmit once admitted.
+There can also be up to 255 “parked” devices in the piconet in some form of “sleep mode” to conserve energy and will awaken to receive beacon messages from the master. 
+These networks must be \textbf{self-organizing}: when a master wants to form a network, it first determines which devices are within range in a process known as \textbf{neighbor discovery} where the master broadcasts 32 inquiry messages, each on a different frequency channel, and repeats the sequence up to 128 times.
+When a client hears a message, it backs off a random amount of time from 0 s to 0.3 s and then responds with a message containing its ID.
+Once the master has discovered all of the potential clients, it invites them in a process called the \textbf{Bluetooth paging}, where the master informs the client of the frequency-hopping pattern and the sender’s clock.
+
+\section{Appendix A - Formulae}
+\begin{itemize}
+    \item Transmission delay : $ d_{trans} = L/R $
+    \begin{itemize}
+        \item $ L $ : packet length [bits]
+        \item $ R $ : transmission rate [bps]
+    \end{itemize}
+    \item Queuing delay : $ d_{queue} = La/R $
+    \begin{itemize}
+        \item $ a $ : traffic arriving rate [packets/s]
+    \end{itemize}
+    \item Propagation delay : $ d_{prop} = d/s $
+    \begin{itemize}
+        \item $ d $ : distance [m]
+        \item $ s $ : propagation speed [m/s]
+    \end{itemize}
+    \item Total delay : $ d_{total} = d_{proc} + d_{queue} + d_{trans} + d_{prop}$ 
+    \item End-to-end delay : $ N \cdot d_{total} $
+    \begin{itemize}
+        \item $ N $ : number of links
+    \end{itemize}
+    \item End-to-end throughput : $ F/min\{R_1, R_2, ..., R_N\} $
+    \begin{itemize}
+        \item $ F $ : file size [bits]
+    \end{itemize}
+    \item Distribution time (client-server) : $ D_{cs} = max \left\{\displaystyle\frac{N \cdot F}{u_s},\displaystyle\frac{F}{d_{min}}\right\} $
+    \begin{itemize}
+        \item $ N $ : number of peers
+        \item $ u_s $ : server upload rate [bps]
+        \item $ d_i $ : ith peer download rate [bps]
+    \end{itemize}
+    \item Distribution time (P2P) : $ D_{cs} = max \left\{\displaystyle\frac{F}{u_s},\displaystyle\frac{F}{d_{min}},\displaystyle\frac{N \cdot F}{u_s + \sum_{i=1}^N u_i}\right\} $
+    \item Utilization : $ U_{sender} = \displaystyle\frac{L/R}{RTT + L/R} $
+    \item Estimated RTT: $ EstimatedRTT = (1 - \alpha) \cdot EstimatedRTT + \alpha \cdot SampleRTT $
+    \begin{itemize}
+        \item $ \alpha = 0.125 $
+    \end{itemize}
+    \item RTT variation : $ DevRTT = (1 - \beta) \cdot DevRTT + \beta \cdot |SampleRTT - EstimatedRTT| $
+    \begin{itemize}
+        \item $ \beta = 0.25 $
+    \end{itemize}
+    \item Timeout interval : $ TimeoutInterval = EstimatedRTT + 4 \cdot DevRTT $
+    \item Receive window : $ rwnd = RcvBuffer - (LastByteRcvd - LastByteRead) $
+    \item Buffering : $ B = RTT \cdot C/N $
+    \begin{itemize}
+        \item $ C $ : link capacity
+        \item $ N $ : independent TCP flows
+    \end{itemize}
+    \item WFQ : $ WFQ_i = \displaystyle\frac{w_i}{\sum_{i=1} i} $
+    \begin{itemize}
+        \item $ i $ : WFQ class
+        \item $ w $ : class weight
+    \end{itemize}
+    \item Bellman-Ford : $ D_x(y) = min_v\{c_{x,v} + D_v(y)\}$
+    \begin{itemize}
+        \item $ D_x(y) $ : cost of the best path from $ x $ to $ y $
+        \item $ c_{x,v} $ : direct link cost from $ x $ to $ v $
+        \item $ w $ : class weight
+    \end{itemize}
+\end{itemize}
+
+\section{Appendix B - Port Numbers}
+\begin{itemize}
+    \item SMTP : $ 25 $
+    \item DNS : $ 53 $
+    \item DHCP : $ 67 $
+    \item HTTP : $ 80 $
+    \item POP3 : $ 110 $
+    \item IMAP : $ 143 $
+\end{itemize}
+
+\end{document}
