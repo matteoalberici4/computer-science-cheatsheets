@@ -1,0 +1,368 @@
+\documentclass{article}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, float, graphicx, hyperref}
+
+\title{Automata and Formal Languages}
+\author{Matteo Alberici}
+\date{May 2020}
+
+\begin{document}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+% ----------------------- %
+% Chapter 1: Introduction
+% ----------------------- %
+\section{Introduction}
+The theory of computation can be divided into three areas: 
+\begin{itemize}
+    \item \textbf{Complexity Theory}
+        \vspace{0.2cm} \\
+        What makes problems computationally hard or easy?
+    \item \textbf{Computability Theory}
+        \vspace{0.2cm} \\
+        What problems can(not) computers solve?
+    \item \textbf{Automata Theory}
+        \vspace{0.2cm} \\
+        Deals with defining mathematical models of computation \\
+\end{itemize}
+\section{Mathematical Notions and Terminology}
+\subsection{Sets}
+A \textbf{set} is a group of unordered unique \textbf{elements} seen as a unit:
+\begin{center}
+    $S = \{1, \ ciao, \ 3\}$
+\end{center}
+The \textbf{cardinality} of a set is the number of its elements:
+\begin{center}
+    $|S| = 3$
+\end{center}
+The \textbf{empty set} $\emptyset$ is the set with no members. \\
+A set $A$ is a \textbf{subset} of set $B$ if every element of $A$ is member of $B$:
+\begin{center}
+    $A \subseteq B$
+\end{center}
+Moreover, $A$ is a \textbf{proper subset} of $B$ if $A$ is not equal to $B$:
+\begin{center}
+    $A \subset B$
+\end{center}
+The \textbf{union} of two sets $A$ and $B$ is the set containing all the elements in $A$ and all those in $B$:
+\begin{center}
+    $A \cup B$
+\end{center}
+The \textbf{intersection} of two sets $A$ and $B$ is the set containing the elements that are in both $A$ and $B$:
+\begin{center}
+    $A \cap B$
+\end{center}
+\noindent
+The \textbf{complement} of set $A$ is the set of all elements not in $A$:
+\begin{center}
+    $\bar{A}$
+\end{center}
+The \textbf{power set} of set $A$ is the set of all the subsets of $A$:
+\begin{center}
+    $2^A$
+\end{center}
+The \textbf{Cartesian product} of sets $A$ and $B$ is the set of all ordered pairs wherein the first element is a member of $A$ and the second element is a member of $B$:
+\begin{center}
+    $A \times B$
+\end{center}
+\subsection{Sequences and Tuples}
+A \textbf{sequence} is an ordered list of objects:
+\begin{center}
+    $(1, 2, 3)$
+\end{center}
+A finite sequence is a \textbf{tuple}: a \textbf{k-tuple} contains $k$ elements. \\
+A $2$-tuple is called an \textbf{ordered pair}.
+\subsection{Functions and Relations}
+A \textbf{function} is an object that sets up an input–output relationship. A function $f$ whose input and output values are $a$ and $b$ is represented as follows:
+\begin{center}
+    $f(a) = b$
+\end{center}
+A function is also called a \textbf{mapping}, thus: "$f$ maps $a$ to $b$". \\
+Given a function $f$, the set of its possible inputs is called the \textbf{domain}, while the set of its possible outputs is called the \textbf{range}:
+\begin{center}
+    $f \ : \ D \ \rightarrow \ R$
+\end{center}
+A function that uses all the elements of the range is \textbf{onto} the range. \\
+If the domain of a function $f$ is $A_1 \times ... \times A_k$, then the input is a k-tuple $(a_1, ..., a_k)$ where $a_i$ is an \textbf{argument} to $f$. A function $f$ with $k$ arguments is a \textbf{k-ary function}, where $k$ is the \textbf{arity} of $f$. An \textbf{unary function} has one argument, while a \textbf{binary function} has two arguments. \\
+A \textbf{predicate} is a function whose range is $\{$\textcolor{ForestGreen}{true}, \ \textcolor{red}{false}$\}$. \\
+A predicate whose domain is a set of k-tuples $A \times ... \times A$ is a \textbf{k-ary relation} on $A$. A $2-$ary relation is called a \textbf{binary relation}. \\
+An \textbf{equivalence relation} $R$ captures the notion of two objects being equal in some feature and must satisfy the following conditions:
+\begin{enumerate}
+    \item $R$ is \textbf{reflexive}: $xRx$ for every $x$
+    \item $R$ is \textbf{symmetric}: $xRy$ implies $yRx$ for every $x,y$
+    \item $R$ is \textbf{transitive}: $xRy$ and $yRz$ imply $xRz$, for every $x,y,z$.
+\end{enumerate}
+\subsection{Graphs}
+A \textbf{graph} is a set of \textbf{nodes} connected with \textbf{edges}. We can label nodes and edges obtaining a \textbf{labeled graph}. \\
+In a \textbf{directed graph}, edges have directions. \\
+A graph $G$ is a \textbf{subgraph} of a graph $H$ if the nodes and the edges of $G$ are subsets of the ones of $H$.
+A \textbf{simple cycle} contains at least three nodes and repeats the first and last ones. \\
+A graph is \textbf{connected} if every node has a path to the others. \\
+A graph is a \textbf{tree} if it is connected and has no simple cycles.
+Trees have a node designated as \textbf{root}, while the other nodes of degree $1$ are called the \textbf{leaves}. \\
+A \textbf{path} is a sequence of nodes connected by edges. A \textbf{simple path} is a path with no \textbf{cycles}, meaning paths that start and end in the same node. A path wherein all the arrows point in the same direction as its steps is a \textbf{directed path}: a directed graph is \textbf{strongly connected} if a directed path connects every two nodes.
+\subsection{Strings and Languages}
+An \textbf{alphabet} $\Sigma$ is a nonempty finite set of \textbf{symbols}:
+\begin{center}
+    $\Sigma = \{a,b,c,...,z\}$
+\end{center}
+A \textbf{string over an alphabet} is a sequence of symbols from $\Sigma$:
+\begin{center}
+    $abracadabra$ is a string over $\Sigma$
+\end{center}
+Given a string $w$, then the \textbf{length} $|w|$ is the number of its symbols. The \textbf{empty string} $\epsilon$ is the string with length $0$. \\
+Given two strings $x$ and $y$, then the \textbf{concatenation} $xy$ is obtained by appending $y$ to the end of $x$:
+\begin{center}
+    $aa \circ bb = aabb$,
+\end{center}
+where $aa$ is the \textbf{prefix} and $bb$ is the suffix. \\
+A \textbf{language} $L$ is a set of strings.
+\subsection{Definitions, Theorems, and Proofs}
+\textbf{Definitions} describe objects and notions we make \textbf{mathematical statements} about, expressing some property. \\
+A \textbf{proof} is a convincing logical argument that a statement is true, while a \textbf{theorem} is a mathematical statement proved true. Statements useful only because they assist in the proof of another are called \textbf{lemmas}. Theorems determining that related statements are true are called \textbf{corollaries}.
+\subsubsection{Finding Proofs}
+Truth or falsity of statements is determined trough a mathematical proof. Given the multipart statement \textit{"P iff Q"}, we have the following definitions:
+\begin{itemize}
+    \item \textbf{Forward direction}: if $P$ is true, then $Q$ is true - $P \Rightarrow Q$
+    \item \textbf{Reverse direction}: if $Q$ is true, then $P$ is true - $Q \Leftarrow P$
+    \item Finally, $P \iff Q$
+\end{itemize}
+If a statement states that all objects of a certain type have a particular property, we must find a \textbf{counterexample} in order to prove it wrong.
+\subsubsection{Types of Proofs}
+\textbf{Proof by Construction}
+\vspace{0.2cm} \\
+A \textbf{proof by construction} shows that a particular type of object exists. For example, we build a \textbf{k-regular graph} if every node in the graph has degree $k$.
+\vspace{0.1cm} \\
+\textbf{Proof by Contradiction}
+\vspace{0.2cm} \\
+In a \textbf{proof by contradiction}, we assume that a theorem is false and then show that it leads to a false consequence. For example, proving that the square root of $2$ is an irrational number.
+\vspace{0.5cm} \\
+\textbf{Proof by Induction}
+\vspace{0.2cm} \\
+A \textbf{proof by induction} shows that all elements of an infinite set have a specified property. For example, we show that an arithmetic expression computes a desired quantity for every assignment to its variables. \\
+Given a property $P$, then the \textbf{basis} proves that $P(1)$ is true, while the \textbf{induction step} proves that if $P(1)$ is true, then so is $P(i + 1)$. The assumption that $P(i)$ is true is the \textbf{induction hypothesis}.
+
+\newpage
+
+\section{Boolean Logic}
+\textbf{Boolean logic} is a mathematical system built around the \textbf{Boolean values} \textcolor{ForestGreen}{true} and \textcolor{red}{false}, manipulated through \textbf{Boolean operations}:
+\begin{itemize}
+    \item \textbf{Negation}: returns the opposite value ($NOT$ - $\neg$)
+    \item \textbf{Conjunction}: returns $1$ if both values are $1$ ($AND$ - $\land$)
+    \item \textbf{Disjunction}: returns $1$ if either of the values is $1$ ($OR$ - $\lor$) 
+    \item \textbf{Exclusive or}: returns $1$ if only one value is $1$ ($XOR$ - $\oplus$)
+    \item \textbf{Equality}: returns $1$ if both values have the same value ($\iff$)
+    \item \textbf{Implication}: returns $0$ iff the first operand is $1$ and the second one is $0$ ($\implies$)
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{Figure 1A - Boolean Operations.png}
+    \vspace{0.2cm}\\
+    \includegraphics[width=7.5cm]{Figure 1B - Boolean Operations.png}
+    \caption{Boolean operations results}
+\end{figure}
+The \textbf{distributive law} for $AND$ and $OR$ states that:
+\begin{itemize}
+    \item $P \land (Q \lor R) \ \iff \ (P \land Q) \lor (P \land R)$
+    \item $P \lor (Q \land R) \ \iff \ (P \lor Q) \land (P \lor R)$
+\end{itemize}
+
+\newpage
+
+\section{Regular Languages}
+Theory of computation uses an idealized computer called a \textbf{computational model}. 
+\subsection{Finite Automata}
+The simplest computational model is the \textbf{finite automaton} (\textbf{FA}). It receives a string in input and, by processing it, either \textbf{accepts} or \textbf{rejects} it.
+An FA is defined by the following \textbf{5-tuple}:
+\begin{center}
+    $A = (Q, \Sigma, \delta, q_0, F)$, where
+\end{center}
+\begin{itemize}
+    \item $Q$ is the finite set of states
+    \item $\Sigma$ is the finite input alphabet
+    \item $\delta:Q\times\Sigma\rightarrow Q$ is the transition function
+    \item $q_0 \in Q$ is the initial state
+    \item $F \subseteq Q$ is the accepting state
+\end{itemize}
+Let's analyze the following example reading string $1101$ in the machine $M$:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{Figure 2 - FA.png}
+\end{figure}
+\begin{enumerate}
+    \item Start in the initial state $q_1$
+    \item Read $1$, follow transition from $q_1$ to $q_2$
+    \item Read $1$, follow transition from $q_2$ to $q_2$
+    \item Read $0$, follow transition from $q_2$ to $q_3$
+    \item Read $1$, follow transition from $q_3$ to $q_2$
+    \item Accept because $M$ is in the accepting state $q_2$
+\end{enumerate}
+A language is \textbf{regular} if an FA recognises it. Given the set $A$ of all strings accepted by a machine $M$, then $A$ is the \textbf{language of machine} $M$:
+\begin{center}
+    $L(M) = A$ 
+\end{center}
+\newpage
+\noindent
+There are three \textbf{regular operations} used to study properties of regular languages:
+\begin{itemize}
+    \item \textbf{Union}: $A \cup B = \{x \ | \ x \in A$ or $x \in B\}$
+    \item \textbf{Concatenation}: $AB = \{xy \ | \ x \in A$ and $y \in B\}$
+    \item \textbf{Star}: $A* = \{x_1,x_2,...,x_k \ | \ k \geq 0$ and $x_i \in A\}$
+\end{itemize}
+\subsection{Nondeterminism}
+In a \textbf{nondeterministic finite automaton} (\textbf{NFA}), several choices may exist for the next state:
+\begin{itemize}
+    \item Multiple ways to proceed, thus the machine \textbf{splits} in copies
+    \item No ways to proceed, thus the copy \textbf{dies}
+    \item A copy is in an accepting state, thus the string is accepted
+    \item An $\varepsilon$ transition exists, thus the machine \textbf{splits immediately}
+\end{itemize}
+An NFA is defined by the following \textbf{5-tuple}:
+\begin{center}
+    $FA = (Q, \Sigma, \delta, q_0, F)$, where
+\end{center}
+\begin{itemize}
+    \item $Q$ is the set of states
+    \item $\Sigma$ is the input alphabet
+    \item $\delta:Q\times\Sigma_\varepsilon\rightarrow P(Q)$ is the \textbf{transition function}
+    \item $q_0 \in Q$ is the \textbf{initial state}
+    \item $F \subset Q$ is the \textbf{accepting state}
+\end{itemize}
+\subsubsection{From NFA to FA}
+There exist an NFA for each FA: 
+\begin{enumerate}
+    \item Draw $q_0$ and the states reached from it along an $\varepsilon$ transition
+    \item Draw at least one accepting state
+    \item Draw all transitions
+        \begin{itemize}
+            \item No label: the transition leads to the \textbf{dead state} $\emptyset$  
+            \item $\varepsilon$ transition: the transition leads to the subset of states reached along it
+        \end{itemize}
+\end{enumerate}
+\subsection{Regular Expressions}
+\textbf{Regular expressions} describe languages and are built up using regular operations:
+\begin{align*}
+    &(0 \cup 1) \rightarrow (\{0\} \cup \{1\}) \rightarrow \{0,1\} = \Sigma \\
+    &\Sigma 0 \rightarrow \{00,10\} \\
+    &0* \rightarrow\{0*\} \rightarrow \{\varepsilon,0, 00, ...\}
+\end{align*}
+$R$ is a regular expression over an alphabet $\Sigma$ if it is at least one of:
+\begin{enumerate}
+    \item $a$, for some $a$ in $\Sigma$
+    \item $\varepsilon$
+    \item $\emptyset$
+    \item $R_1 \cup R_2$, where $R_1$ and $R_2$ are regular expressions
+    \item $R_1R_2$, where $R_1$ and $R_2$ are regular expressions
+    \item $R_1*$, where $R_1$ is a regular expression
+\end{enumerate}
+\newpage
+\section{Nonregular Languages}
+To prove if a language is regular or not, we use the following procedure.
+\vspace{0.2cm} \textbf{pumping lemma}, which states that if $L$ is a regular language, then there is a \textbf{pumping length} $p$ such that, if $w$ is a string in $L$ of at least length $p$, then $w$ may be divided into three pieces, $x$, $y$, and $z$, satisfying the following conditions:
+\begin{enumerate}
+    \item $xy^iz \in L$ for each $i \geq 0$
+    \item $|y| > 0$
+    \item $|xy| \leq p$ 
+\end{enumerate}
+We must choose a string $s \in L$ of at least length $p$, then show that no possible division satisfies all conditions. \\
+Let's analyze an example with the following language:
+\begin{center}
+    $L = \{w|w = 0^n1^n$ for $n \geq0\}$
+\end{center}
+\begin{enumerate}
+    \item Let's assume $L$ is regular
+    \item A pumping length $p$ must exist such that all strings in $L$ of at least length $p$ can be pumped
+    \item Choose a string $w$ that cannot be pumped:
+        \begin{center}
+            $w=0^p1^p \rightarrow 00...0 11...1$
+        \end{center}
+    \item Show that no division into $xyz$ that satisfies all conditions exists:
+        \begin{enumerate}
+            \item $3^{rd}$ condition: $y$ must contain only $0$s
+            \item $2^{nd}$ condition: $y$ must contain at least one $0$
+            \item $1^{st}$ condition: repeating $0$s results in a string $\notin L$
+        \end{enumerate}
+\end{enumerate}
+\newpage
+\section{Context-Free Languages}
+A \textbf{context-free grammar} (\textbf{CFG}) is a collection of \textbf{substitution rules} which are composed of a \textbf{variable}, a symbol, and a string, which again is composed of variables or \textbf{terminals}, built as follows:
+\begin{enumerate}
+    \item Write the \textbf{start variable}:
+    \item Find a rule starting with a known variable
+    \item Replace the variable with the correspondent string
+        \begin{align*}
+            &A \rightarrow 0A1 &A\rightarrow0A1 \rightarrow00A11\rightarrow00B11\rightarrow00Z11 \\
+            &A \rightarrow B &A\rightarrow B\rightarrow Z \\
+            &B \rightarrow Z &L = \{0^nZ1^n \ | \ n\geq0\}
+        \end{align*}
+\end{enumerate}
+A language generated by a CFG is a \textbf{context-free language} and it defined by the following \textbf{4-tuple}:
+\begin{center}
+    $L = (V,\Sigma, R, S)$, where
+\end{center}
+\begin{itemize}
+    \item $V$ is the set of variables
+    \item $\Sigma$ is the set of terminals
+    \item $R$ is the set of rules
+    \item $S \in V$ is the start variable
+\end{itemize}
+The following are some properties of CGFs:
+\begin{enumerate}
+    \item Break a language into simpler languages:
+        \begin{itemize}
+            \item Union: 
+                \begin{align*}
+                    &S_1 \rightarrow 0S_11 \ | \ \varepsilon \\
+                    &S_2 \rightarrow 0S_21 \ | \ 01 \\ 
+                    &S \rightarrow S_1 \ | \ S_2
+                \end{align*}
+            \item Concatenation:
+                \begin{align*}
+                    &S_1 \rightarrow 0S_11 \ | \ \varepsilon \\
+                    &S_2 \rightarrow 0S_21 \ | \ 01 \\ 
+                    &S \rightarrow S_1S_2
+                \end{align*}
+        \end{itemize}
+        \newpage
+    \item Draw an FA and convert it to its CFG:
+        \begin{enumerate}
+            \item Design a variable $R_i$ for every state $Q_i$
+            \item Add a rule $R_i \rightarrow aR_j$ for the $a-$transition from $Q_i$ to $Q_j$
+            \item Add a rule $R_i \rightarrow \varepsilon$ if $Q_i$ is a final state
+            \item Set the variable $R_0$ for the initial state $Q_0$ 
+        \end{enumerate}
+\end{enumerate}
+A sequence of substitutions is called a \textbf{derivation}. A string is \textbf{derived ambiguously} if it has many derivations, thus a grammar is \textbf{ambiguous} if it generates at least one ambiguous string.
+\newpage
+\section{Pushdown Automata}
+A \textbf{pushdown automaton} (\textbf{PDA}) is an NFA equipped with a \textbf{stack} giving it an unbounded memory needed for some non-regular languages. A PDA is defined by the following \textbf{6-tuple}:
+\begin{center}
+    $P = (Q, \Sigma, \Gamma, \delta, q_0, F)$, where
+\end{center}
+\begin{itemize}
+    \item $Q$ is the set of states
+    \item $\Sigma$ is the alphabet
+    \item $\Gamma$ is the \textbf{stack alphabet}
+    \item $\delta:Q_i\times\Sigma_\varepsilon\times\Gamma_\varepsilon\rightarrow P(Q_j\times\Gamma_{\varepsilon})$ 
+    is the transition function, where:
+        \begin{itemize}
+            \item $Q_i$ is a state
+            \item $\Sigma_\varepsilon$ is an input symbol
+            \item $\Gamma$ is a stack symbol read
+            \item $Q_j$ the state reached
+            \item $\Gamma_\varepsilon$ is the new symbol on the stack 
+        \end{itemize}
+    \item $q_0$ is the initial state
+    \item $F \subseteq Q$ is the set of accepting states
+\end{itemize}
+The \textbf{transition labels} are written as follows:
+\begin{center}
+    $A,B \rightarrow C$,
+\end{center}
+meaning that if $A$ is read from the input string and $B$ is on top of the stack, then pop $B$ and write $C$.
+
+\end{document}
