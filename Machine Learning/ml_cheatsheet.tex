@@ -1,0 +1,787 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{algorithm, algpseudocode, amsfonts, amsmath, amssymb, float, graphicx, hyperref, listings}
+\usepackage[dvipsnames]{xcolor}
+
+\DeclareMathOperator*{\argmin}{\textit{argmin}}
+\DeclareMathOperator*{\argmax}{\textit{argmax}}
+
+\newcommand{\bb}[1]{\textcolor{black}{\textbf{#1}}}
+\newcommand{\rr}[1]{\textcolor{black}{#1}}
+\newcommand{\cc}[1]{\begin{center}\textcolor{black}{#1}\end{center}}
+\newcommand{\concept}[1]{\textbf{#1}\vspace{0.2cm}\\}
+
+\title{Machine Learning}
+\author{Matteo Alberici}
+\date{February 2022}
+
+\begin{document}
+\maketitle
+\vspace{2cm}
+\noindent
+\begin{center}
+   \large\textit{How do we construct computer programs that automatically improve with experience?} 
+\end{center}
+\newpage
+\tableofcontents
+\newpage
+
+% ----------------------- %
+% Chapter 1: Introduction
+% ----------------------- %
+\section{Introduction}
+
+% 1.1 - Learning Procedure
+\subsection{Learning Procedure}
+A computer program \bb{learns} from an experience \rr{$E$} with respect to some class of tasks \rr{$T$} and a performance measure \rr{$P$} if its \bb{performance at task} in \rr{$T$} improves with \rr{$E$}. There exist different types of tasks:
+\begin{itemize}
+    \item \textbf{Classification} 
+        \vspace{0.2cm} \\
+        Determine the model that partitions measurements in classes
+    \item \bb{Regression}
+        \vspace{0.2cm} \\
+        Determine the model that explains measurements
+    \item \bb{Prediction}
+        \vspace{0.2cm} \\
+        Tell the next measurements along with a confidence level
+    \item \bb{Control}
+        \vspace{0.2cm} \\
+        Generate optimal actions over time to solve a problem
+    \item \bb{Clustering} 
+        \vspace{0.2cm} \\
+        Gather similar instances according to some functions
+\end{itemize}
+We must determine the best model from a \bb{family of models} solving a task:
+\cc{$ f(\theta,x) \ \Longrightarrow \ f(\hat{\theta}, x)$}
+
+% 1.2 - Models
+\subsection{Models}
+\bb{Models} are used to satisfy hypotheses. There exist three types of models:
+\begin{itemize}
+    \item \bb{White box models}
+        \vspace{0.2cm} \\
+        Physical laws and structural parameters are known; thus, modeling equations can be derived.
+    \item \bb{Grey box models}
+        \vspace{0.2cm} \\
+        Physical laws and at least one structural parameter are known; thus, modeling equations can be derived, but parameters must be identified
+    \item \bb{Black box models}
+        \vspace{0.2cm} \\
+        Physical laws are unknown; thus, modeling equations cannot be derived
+\end{itemize}
+
+% 1.3 - Measure and Measurements
+\subsection{Measure and Measurements}
+Measuring a quantity \rr{$x_0$} results in a \bb{measurement} \rr{$x_t$} at time \rr{$t$} with a sensor which could introduce sources of uncertainty; \rr{$x_t$} is an approximation:
+\cc{$\varepsilon_i = | x_0 - x_t |$}
+
+% 1.3.1 - Additive Models
+\subsubsection{Additive Models}
+In \bb{additive models}, measurements depend on an i.i.d. random variable \rr{$\eta$} called the \bb{noise}, depending on the sensors:
+\cc{$x = x_0 + \eta \ \ \ \ \ \eta = f_{\eta}(0,\sigma^2_{\eta})$}
+% 1.3.2 - Multiplicative Models
+\subsubsection{Multiplicative Models}
+In \bb{multiplicative models}, the impact of the noise is \rr{$x_0\eta$}, but the relative contribution \rr{$\eta$} does not depend on \rr{$x_0$}:
+\cc{$x = x_0(1 + \eta)$}
+
+% 1.4 - Learning Frameworks
+\subsection{Learning Frameworks}
+% 1.4.1 - Supervised Learning
+\subsubsection{Supervised Learning}
+In a \bb{supervised learning} framework, there is a concept to learn, a supervisor teaching it, and a program that learns and formulates an educated guess.
+% 1.4.2 - Supervised Learning
+\subsubsection{Unsupervised Learning}
+In an \bb{unsupervised learning} framework, we build a representation of data through a machine providing information for decision making given an input.
+
+% 1.5 - Features
+\subsection{Features}
+We extract \textbf{features} from measurements to ease learning tasks. By reducing them to a minimal set called the \bb{feature selection}, they provide a compact representation of the inputs, being advantageous with prior information. Features are usually derived from images or models and each of them is represented by a \bb{parameter vector}:
+\cc{$\hat{\theta}_{t1}, \dots, \hat{\theta}_{tn}\ \ \ \ \ y_1(t) \rightarrow f^{1,2}_\theta \rightarrow y_2(t)$}
+
+\newpage
+
+% ----------------------------- %
+% Chapter 2: Regression Problem
+% ----------------------------- %
+\section{Regression Problem}
+Regression aims at obtaining the optimal hyperplane explaining a dataset. \bb{Linear models} are good with high uncertainty and a linearly-generated small and sparse dataset.
+
+% 2.1 - Multiple Linear Regression
+\subsection{Multiple Linear Regression}
+Suppose we have a \bb{training set} of \rr{$n$} data couples:
+\cc{$\{(x_1,y_1), \dots, (x_n, y_n)\}$ \ \ \ \ $x \in \mathbb{R}^d$, \ $y \in \mathbb{R}$}
+Let us assume that the unknown function generating the data is linear and that there is a Gaussian uncertainty affecting measurements in an additive way:
+\cc{$y(x) = x^T\theta^\circ + \eta \ \ \ \ \ \theta^{\circ T} = [\theta^\circ_1, \dots,\theta^\circ_d]\ \ \ \ \theta^\circ \in \mathbb{R}^d$}
+Optimal parameters and variance of noise are unknown. The goal is to determine the \bb{best estimated parameter vector} \rr{$\hat{\theta}$} to generate the best model:
+\cc{$f(\hat{\theta},x) = x^T\hat{\theta}$}
+% 2.1.1 - Least Mean Square
+\subsubsection{Least Mean Square}
+The \bb{Least Mean Square} (\bb{LMS}) procedure finds the linear function minimizing the average distance between the dataset and the function itself:
+\cc{$V_n(\theta) = \displaystyle\frac{1}{n}\displaystyle\sum^n_{i = 1}(y(x_i) - f(\theta, x_i))^2$}
+The parameter vector \rr{$\hat{\theta}$} minimizing the performance function is:
+\cc{$\hat{\theta} = \displaystyle\argmin_{\theta \in \Theta} V_n(\theta)$}
+% 2.1.2 - Estimating Parameters
+\subsubsection{Estimating Parameters}
+By grouping \rr{$x_i$} in \rr{$X$} and \rr{$y_i$} in \rr{$Y$}, we obtain:
+\cc{$V_n^*(\theta) = (Y - X\theta)^T(Y - X\theta)$}
+The function is \bb{convex}, meaning there is one estimate unless the problem degenerates. The minimum is found by computing the \bb{stationary points}:
+\cc{$\displaystyle\frac{\partial V^*_n(\theta)}{\partial\theta} = -2X^TY + 2X^TX\theta=0$}
+The parameter vector \rr{$\hat{\theta}$} minimizing the performance function is:
+\cc{$\hat{\theta} = (X^TX)^{-1} X^TY$}
+
+% 2.2 - Performance at Task in Regression
+\subsection{Performance at Task in Regression}
+Since the performance at task \rr{$V_n(\hat{\theta})$} is biased to the training set, we consider the unseen \bb{test set} to measure it:
+\cc{$\{(\bar{x}_1, \bar{y}_1), \dots, (\bar{x}_l, \bar{y}_l)\}$}
+We asses the performance providing a mean through \bb{cross-validation}:
+\cc{$V_l(\hat{\theta}) = \displaystyle\frac{1}{l}\displaystyle\sum^l_{i = 1}(\bar{y}_i - \bar{x}^T\hat{\theta})^2$}
+It is fundamental not to bias neither the learning procedure nor the test set.
+
+% 2.3 - Properties of Learning Frameworks
+\subsection{Properties of Learning Frameworks}
+Under a linear framework, it is proved that:
+\cc{$\displaystyle\lim_{n\rightarrow \infty} \hat{\theta} = \theta^\circ$ \ \ \ \ $\displaystyle\lim_{l\rightarrow \infty} V_l(\hat{\theta}) = \sigma^2_\eta$}
+Given \rr{$n$} training couples, it can be proved that:
+\cc{$Var(\hat{\theta}) = (X^TX)^{-1}\sigma^2_\eta$ \ \ \ \ $\hat{\sigma}^2_\eta = \displaystyle\frac{1}{n - d}\displaystyle\sum^n_{i = 1}(y(x_i)-f(\hat{\theta}, x_i))^2$}
+The \bb{Occam's razor strategy} states that if a parameter is smaller than twice its standard deviation, then set it to \rr{$0$}, re-evaluate the performance, and decide whether to keep it or not.
+
+% 2.4 - Ridge Regression
+\subsection{Ridge Regression}
+\bb{Ridge regression} aims at pushing as many parameters as possible towards \rr{$0$} by adding a shrinking penalty to the loss function. Inputs must be centered, meaning that their expected value must be \rr{$0$}. The \bb{Mean Squared Error} (\bb{MSE}) training the performance measure is:
+\cc{$V_{Ridge}(\theta)=\displaystyle\frac{1}{n}\displaystyle\sum^n_{i=1}(y_i-x^T_i\theta)^2+\lambda||\theta||^2$}
+The \bb{hyperparameter} \rr{$\lambda$} weighs both accuracy and shrinking: a small \rr{$\lambda$} gives more value to accuracy, while a large one privileges a small number of parameters. We obtain a trade-off by estimating an appropriate \rr{$\lambda$} with the \bb{validation set}. The parameter vector \rr{$\hat{\theta}$} minimizing the performance function is:
+\cc{$\hat{\theta} = (X^TX+\lambda I)^{-1}X^TY$}
+
+% 2.5 - Lasso Regression
+\subsection{Lasso Regression}
+\bb{Lasso regression} penalizes the parameter itself, but not in a quadratic way:
+\cc{$V_{Lasso}(\theta)=\displaystyle\frac{1}{n}\displaystyle\sum^n_{i=1}(y_i-x^T_i\theta)^2+\lambda\displaystyle\sum^d_{i=2}|\theta_i|$}
+The optimization problem is no more convex; thus, the minimization problem is solved through quadratic programming. Some coefficients are now set exactly to \rr{$0$} thanks to the dual formulation of the problem.
+
+% 2.6 - Final Prediction Error
+\subsection{Final Prediction Error}
+We could generate infinite models with infinite \rr{$n$}-sized datasets:
+\cc{$E_n[E_\eta[V_v]] = \sigma_\eta^2(n+d)$}
+The \bb{Final Prediction Error} (\bb{FPE}) assesses performance on unseen data and can be used for model selection on hierarchical families:
+\cc{$FPE = \displaystyle\frac{n+d}{n-d}\displaystyle\sum^n_{i=1}(y(x_i) - f(\hat{\theta}, x_i))^2$}
+
+% 2.7 - Non-linear Regression
+\subsection{Non-linear Regression}
+The minimization of a non-linear function is known as \bb{learning procedure}. The \textbf{gradient-based optimization} determines the stationary points of a differentiable function through minimization. Given a generic convex and differentiable scalar function, we start from an initial point and move along the gradient in the direction minimizing the loss function:
+\cc{$\theta_{i+1} = \theta_i - \varepsilon_L \displaystyle\frac{\partial V_n(\theta)}{\partial\theta}|_{\theta_i}$}
+The \bb{identifiability problem} occurs if the function is not convex.
+
+% 2.8 - Structural Risk
+\subsection{Structural Risk}
+A \bb{loss function} measures the distance between the training set and the family of models:
+\cc{$L(y(x), f(\theta, x))$}
+The \bb{structural risk} of the estimated model is its generalization ability:
+\cc{$\bar{V}(\theta) = \displaystyle\int L(y,f(\theta, x))p_x \ dxy$}
+The risk can be decomposed as follows:
+\cc{$\bar{V}(\hat{\theta}) = (\bar{V}(\hat{\theta}) - \bar{V}(\theta^0)) + (\bar{V}(\theta^0) - V_I) + V_I$}
+\begin{itemize}
+    \item \concept{Inherent Risk: \rr{$V_I$}}
+        Depends on the problem structure and is improved by improving the problem itself, such as by reducing the noise caused by the sensors
+    \item \concept{Approximation Risk: \rr{$\bar{V}(\theta^0) - V_I$}} 
+        Depends on how close the approximating family of models is to the function generating the data and is improved with a better family of models
+    \item \concept{Estimation Risk: \rr{$\bar{V}(\hat{\theta}) - \bar{V}(\theta^0)$}}
+        Depends on the learning procedure's effectiveness and can be improved by using a more effective procedure
+\end{itemize}
+
+% 2.9 - Feedforward Neural Networks
+\subsection{Feedforward Neural Networks}
+A \bb{Feedforward Neural Network} (\textbf{FNN}) has the following structure:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{1 - FNN.png}
+\end{figure}
+The input vector \rr{$[x_1, \dots, x_n]$} must be normalized:
+\cc{$\displaystyle\frac{x_i - \mu_i}{\sigma^i}$}
+Each neural connection has a weight \rr{$w_n$}. The overall weight of a neuron defines its \bb{activation value}:
+\cc{$a_t = \displaystyle\sum^n_{i=1}x_iw_i$}
+Each neuron of the hidden layer has an \bb{activation function} defining how the weighted sum of the input is transformed into an output going to the next layer. There exist different activation functions:
+\begin{itemize}
+    \item \concept{Sigmoidal}
+        Mainly used by the neurons of the hidden layer:
+            \cc{$Sig(x) = \displaystyle\frac{1}{1+e(-x)}$}
+    \item \concept{Hyperbolic Tangent}
+        Used along with back-propagation:
+            \cc{$HT(x) = \displaystyle\frac{e^x-e^{-x}}{e^x+e^{-x}}$}
+    \item \concept{Linear}
+        Mainly used in the output layer
+\end{itemize}
+The \bb{universal approximation theorem} states that a feedforward neural network with a single hidden layer containing a finite number of neurons and a linear output neuron approximates any continuous function defined on compact subsets.
+
+% 2.9.1 - Backpropagation Algorithm
+\subsubsection{Backpropagation Algorithm}
+The \textbf{back-propagation algorithm} computes the gradient to update the weights through the \textbf{chain-rule} procedure. Let us consider a quadratic loss function:
+\cc{$V_n(\theta) = \displaystyle\frac{1}{n} \displaystyle\sum^n_{i = 1} (y_i - f(\theta, x_i))^2$}
+By looking at the input space \rr{$j$} and the hidden space \rr{$k$}, we consider the neuron \rr{$v_k$} associated with the weight \rr{$w_{jk}$} and obtain the output function:
+\cc{$f(x_i,\theta) = \displaystyle\sum_k v_kh(\displaystyle\sum_jw_{jk}x_{ij})$}
+The \bb{back-propagation algorithm} equation is:
+\cc{$\displaystyle\frac{\partial V_n(\theta)}{\partial v_k}=-\displaystyle\frac{2}{n}\displaystyle\sum_i(y_i-f(\theta, x_i))h(\displaystyle\sum_jw_{jk}x_{ij})$}
+
+% 2.10 - Model Complexity
+\subsection{Model Complexity}
+The goal is to find the optimal \bb{model complexity} of a family of models and a good compromise with performance. \bb{Overfitting} occurs when there are too many parameters in the model, a high classification variance, and a high complexity; in addition, the noise could be learn. In contrast, \bb{underfitting} occurs when there are a few parameters in the model, a high bias, and a low model complexity; thus, training is too simple and the model needs more time and input features.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{2 - Complexity.png}
+\end{figure}
+\noindent
+Too complex models are penalized through the \bb{Tikhonov regularization}, which defines a penalty term controlled by \rr{$\gamma$}:
+\cc{$\gamma||\theta||^2$}
+% 2.10.1 - Early Stopping
+\subsubsection{Early Stopping}
+\bb{Early stopping} is used to avoid overfitting by defining the number of iterations that can be run before the model begins to over-fit: when a minimum is found, the training is stopped after that amount of iteration if a new minimum is not found.
+% 2.10.2 - Splitting the Data
+\subsubsection{Splitting the Data}
+In order to split a dataset with length \rr{$n$}, we apply a ratio with respect to \rr{$n$} and to the model complexity:
+\begin{align*}
+    &\textcolor{darkgray}{n = 1000 \rightarrow Tr = 70\%, \ V = 15\%, \ Te=15\%} \\
+    &\textcolor{darkgray}{n = 1000000 \rightarrow Tr = 99\%, \ V = 0.5\%, \ Te=0.5\%}
+\end{align*}
+
+\newpage
+
+% --------------------------------- %
+% Chapter 3: Classification Problem
+% --------------------------------- %
+\section{Classification Problem}
+Given an input vector \rr{$x$} and a set of classes \rr{\{$C_1, \dots, C_K$\}}, we compute the probability that \rr{$x$} belongs to each class: the one with the maximum probability is chosen. While in regression \rr{$y$} has a quantitative value, it assumes a categorical value in classification. 
+
+% 3.1 - Standard Classifiers
+\subsection{Standard Classifiers}
+% 3.1.1 - Bayes Classifier
+\subsubsection{Bayes Classifier}
+The \bb{Bayes classifier} assigns a probability to each class, then select the one that maximizes it:
+\cc{$P(Y=k\ |\ X=x) = \displaystyle\frac{P(X=x\ |\ Y=k) \cdot P(Y = k)}{P(X=x)}$}
+\begin{itemize}
+    \item \rr{$P(Y = k\ | \ X = x)$} is the posterior probability
+    \item \rr{$P(X = x\ | \ Y = k)$} is the likelihood
+    \item \rr{$P(Y = k)$} is the prior probability
+    \item \rr{$P(X = x)$} is the evidence
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=5cm]{3 - Bayes.png}
+\end{figure}
+The classifier is "naïve" since it makes strong assumptions on independence among the features: if these assumptions are met and probabilities are known, then the Bayes classifier is the optimal one.
+% 3.1.2 - Binary Classifier
+\subsubsection{Binary Classifier}
+Given an input vector of two features, a \textbf{binary classifier} splits the input space into two classes through a hyperplane. Given a new \rr{$x$} value, we evaluate the \bb{discriminant function}:
+\cc{$f(\hat{\theta}, x) = x^T\hat{\theta}$}
+If the value of the discriminant is \rr{$> 0.5$}, one class is chosen; otherwise, the output is the other one. This procedure is effective if there is an order making justice at the categorical level, such as “\textit{wavelengths}” for colors. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=4cm]{4 - Binary.png}
+\end{figure}
+% 3.1.3 - K-nearest Neighbor Classifier
+\subsubsection{K-nearest Neighbors Classifier}
+The \bb{K-nearest neighbors classifier} looks at the \rr{$k$}-nearest neighbors of a point \rr{$x$} to make decisions:
+\cc{$\displaystyle\lim_{n,k\rightarrow\infty}\ \displaystyle\frac{k}{n}=0$}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=4cm]{5 - KNN.png}
+\end{figure}
+
+% 3.2 - Linear Discriminant Analysis
+\subsection{Linear Discriminant Analysis}
+The \bb{linear discriminant analysis} (\bb{LDA}) finds a separating boundary by reformulating the Bayes theorem in terms of probability density functions:
+\cc{$Pr(Y = k\ | \ X=x)=\displaystyle\frac{\pi_kf_k(x)}{\sum^K_{l=1}\pi_lf_l(x)}$}
+\begin{itemize}
+    \item \rr{$f_k(x)$} is the likelihood of the \rr{$k$}-th class:
+        \cc{$f_k(x)=Pr(X=x\ |\ Y=k)$}
+    \item \rr{$\pi_k$} is the prior probability:
+        \cc{$\pi_k=Pr(Y=k)$}
+\end{itemize}
+% 3.2.1 - One-dimensional Setting
+\subsubsection{One-dimensional Setting}
+Let us consider Gaussian distributed classes with a pdf:
+\cc{$f_k(x) = \displaystyle\frac{1}{\sqrt{2\pi}\cdot\sigma_k}e^{-\displaystyle\frac{1}{2}(\displaystyle\frac{x-\mu_k}{\sigma_k})^2}$}
+Since we are looking for the maximum of the function, the discriminant function onto which we make the class assignment becomes:
+\cc{$\delta_k(x)=x\cdot\displaystyle\frac{\mu_k}{\sigma^2}-\displaystyle\frac{\mu^2_k}{2\sigma^2}+log(\pi_k)$}
+The function is linear in \rr{$x$}:
+\cc{$\hat{\pi}_k=\displaystyle\frac{n_k}{n}$}
+In order to estimate the parameters, we do:
+\cc{$\hat{\mu}_k=\displaystyle\frac{1}{n_k}\displaystyle\sum_{i:y_i=k}x_i$ \ \ \ \ 
+    $\hat{\sigma}^2=\displaystyle\sum^K_{k=1}\displaystyle\frac{n_k-1}{n-K}\cdot\hat{\sigma}^2_k$}
+The winning class is the \rr{$k$} for which \rr{$\delta_k(x)$} assumes the maximum value.
+% 3.2.2 - Vector Space Setting
+\subsubsection{Vector Space Setting}
+If the inputs are vectors instead of scalars, then:
+\cc{$f(x)=\displaystyle\frac{1}{(2\pi)^{p/2}|\sum|^{1/2}}e^{-\frac{1}{2}(x-\mu)^T\sum^{-1}(x-\mu)}$}
+The linear discriminant function becomes:
+\cc{$\delta_k(x)=x^T\sum^{-1}\mu_k-\displaystyle\frac{1}{2}\mu_k^T\sum^{-1}\mu_k+log(\pi_k)$}
+With two classes, the LDA coincides with the linear regression classification.
+
+% 3.3 - Perceptron Algorithm
+\subsection{Perceptron Algorithm}
+The \bb{perceptron algorithm} solves pattern classification problems. It works well on linearly separable classes and its parameters can be learned. The architecture consists of a single neuron with a Heaviside activation function:
+\begin{enumerate}
+    \item Assigns small weights randomly
+    \item Updates weights by iteratively presenting instances of the training set:
+        \cc{$w^j_{t+1} = w^j_t-\varepsilon_L(y_i - f(w_t,x_i))x_i^j$}
+\end{enumerate}
+If the problem is linearly separable, then the algorithm converges to the optimal parameter configuration.
+
+% 3.4 - Feedforward Neural Networks Classification
+\subsection{Feedforward Neural Networks Classification}
+The procedure for classifying in feedforward neural networks is the following:
+\begin{enumerate}
+    \item Define the performance function:
+        \cc{$V_n(\theta)=\displaystyle\frac{1}{n}\displaystyle\sum^n_{i=1}L(y_i,f(\theta,x_i))$}
+    \item Define the learning procedure:
+        \cc{$\theta_{i+1}=\theta_i-\varepsilon_L\displaystyle\frac{\partial V_n(\theta)}{\partial \theta}|_{\theta=\theta_i}$}
+    \item Determine the parameter estimate through a minimization problem:
+        \cc{$\hat{\theta} = \displaystyle\argmin_{\theta\in\Theta}V_n(\theta)$}
+    \item Get the classifier \rr{$f(\hat{\theta},x)$}
+\end{enumerate}
+
+% 3.5 - Logistic Regression
+\subsection{Logistic Regression}
+Since linear classifiers extended from regression methods do not provide a bounded output or a probabilistic interpretation, \bb{logistic regression} aims at training the network’s parameters so that a probabilistic framework supports the sigmoidal output. The logistic function is:
+\cc{$ln\displaystyle\frac{p}{1-p}= x^T\theta$}
+The parameter vector \rr{$\hat{\theta}$} is computed as:
+\cc{$\hat{\theta}=\displaystyle\argmax_{\theta\in\Theta}\displaystyle\sum^n_{i=1}(y_i\theta^Tx_i - log(1 + e^{\theta^Tx_i}))$}
+The estimate can be found with a gradient ascent procedure.
+
+% 3.6 - Loss Functions for Classifiers
+\subsection{Loss Functions for Classifiers}
+The following are some loss functions for classifiers:
+\begin{itemize}
+    \item Square error:
+        \cc{$L(y(x),f(\theta,x)) = (y(x)-f(\theta,x))^2 $}
+    \item Binary cross-entropy:
+        \cc{$L(y(x),f(\theta,x)) = -[y(x)\log f(\theta,x)+(1-y(x))log(1-f(\theta,x))]$}
+    \item Multi-classes cross-entropy:
+        \cc{$L(y(x),f(\theta,x)) = -\displaystyle\sum^M_{c=1} y_c(x)\log f_c(\theta,x)$}
+\end{itemize}
+
+\newpage
+
+% ---------------------------- %
+% Chapter 4: Model Performance
+% ---------------------------- %
+\section{Model Performance}
+
+% 4.1 - Quality Assessment
+\subsection{Quality Assessment}
+% 4.1.1 - Apparent Error Rate
+\subsubsection{Apparent Error Rate}
+The \bb{apparent error rate} (\bb{AER}), or \bb{training error}, estimates the structural risk using the empirical risk: the dataset is used to infer the model and estimate the accuracy performance. AER is optimistically biased unless the dataset is enormous.
+% 4.1.2 - Sample Partitioning
+\subsubsection{Sample Partitioning}
+The \bb{sample partitioning} (\bb{SP}), or \bb{crossvalidation}, estimates the generalization error \rr{$\bar{V}(\hat{\theta})$} on a virgin dataset. Training and test sets are generated by splitting the dataset. SP is an unbiased estimate if it is large.
+% 4.1.3 - K-fold Crossvalidation
+\subsubsection{K-fold Crossvalidation}
+In \bb{k-fold crossvalidation} (\bb{k-CV}), the dataset is randomly split into \rr{$k$} disjoint subsets of equal size: for each subset, the remaining \rr{$k-1$} subsets are merged to form the training set, while the reserved one becomes the test set. Finally, the resulting \rr{$k$} estimates are averaged.
+% 4.1.4 - Leave-one-out
+\subsubsection{Leave-one-out}
+In the \bb{leave-one-out} (\bb{LOO}) method, the test set contains one pattern of the dataset, while the training set contains the remaining \rr{$N - 1$} patterns. The procedure is iterated \rr{$N$} times by holding out each pattern; then, the estimates are averaged. They are highly correlated and there is a large variance. 
+% 4.1.5 - The Bootstrap Method
+\subsubsection{The Bootstrap Method}
+The \bb{bootstrap method} performs a the same procedure of the leave-one-out method, but with replacement, meaning that samples can be used more times to estimate. The method underestimates the test error \rr{$\bar{V}(\hat{\theta})$}.
+
+% 4.2 - Model Validity
+\subsection{Model Validity}
+% 4.2.1 - Regression Problem
+\subsubsection{Regression Problem}
+In the regression problems, a quality test requires to inspect the residual errors of the test set \rr{$S_E$}:
+\cc{$\varepsilon_i = y(x_i)- f(\hat{\theta},x_i), (x_i,y_i) \in S_E$}
+The residual error is characterized by a null expectation and must be unbiased; otherwise, by removing the bias, we improve the performance right away:
+\cc{$E[\varepsilon] = 0$}
+The verification of the hypothesis requires a test on the sample mean:
+\begin{align*}
+    &\text{\bb{Null hypothesis}} \ \textcolor{darkgray}{\rightarrow H_0 : E[\varepsilon] = 0} \\
+    &\text{\bb{Alternate hypothesis}} \ \textcolor{darkgray}{\rightarrow H_1 : E[\varepsilon] \neq 0}
+\end{align*}
+By designing a statistic, we see which hypothesis holds. Under the null hypothesis, the Central Limit Theorem grants the $\boldsymbol{T}$\textbf{-Student} statistic to follow a normal distribution:
+\cc{$T = \displaystyle\frac{\bar{\varepsilon}}{\sqrt{{s^2 / l}}}\sim N(0,1) \ \ \ \ \ \bar{\varepsilon}=\displaystyle\frac{1}{l}\displaystyle\sum^l_{i = 1}\varepsilon_i$ \ \ \ \ \ $s^2 = \displaystyle\frac{1}{l}\displaystyle\sum^l_{i =1 } \varepsilon^2_i$}
+If \rr{$T$} is outside the \rr{95\%} \bb{confidence interval} \rr{$[-1.96, 1.96]$}, then the null hypothesis is rejected.
+% 4.2.2 - Is model A better than model B?
+\subsubsection{Is model A better than model B?}
+Let us consider two datasets:
+\cc{$(x^a_1,y^a_1), \dots, (x^a_{la},y^a_{la}) \ \ \ \ \ (x^b_1,y^b_1), \dots, (x^b_{lb},y^b_{lb})$}
+Let us assume that both models have no bias:
+\cc{$E[\varepsilon_a] = E[\varepsilon_b] = 0$}
+Let us design a hypothesis test on the variance. If the models are different, then the model with the smaller variance is preferable:
+\begin{align*}
+    &\textcolor{darkgray}{H_0:Var[\varepsilon_a] = Var[\varepsilon_b]} \\
+    &\textcolor{darkgray}{H_1:Var[\varepsilon_a]\neq Var[\varepsilon_b]}
+\end{align*}
+Let us evaluate the \bb{squared residuals}:
+\cc{$e^k_i=(y_i^k-f_k(x_i^k))^2 \ \ \ \ i = 1,2, \dots,l_k \ \ \ \ k=a,b$}
+Now we compute the statistic under the Central Limit Theorem:
+\cc{$T = \displaystyle\frac{\bar{e}^a-\bar{e}^b}{\sqrt{\displaystyle\frac{s^2_a}{l_a} + \displaystyle\frac{s^2_b}{l_b}}}\sim N(0,1) \ \ \ \ \ \bar{e}^k=\displaystyle\frac{1}{l_k}\displaystyle\sum^{l_k}_{i=1}e^k_i \ \ \ \ \ s^2_k=\displaystyle\frac{1}{l_k - 1} \displaystyle\sum^{l_k}_{i=1}(e^k_i-\bar{e}^k)^2$}
+If \rr{$T$} is outside the \rr{95\%} confidence interval, then the hypothesis is rejected, and we select the model with the minor variance.
+
+% 4.3 - Anomaly Detection
+\subsection{Anomaly Detection}
+\textbf{Anomaly detectors} are classifiers that process data streams looking for anomalies.
+% 4.3.1 - Confusion Matrices
+\subsubsection{Confusion Matrices}
+The classification performance nature is described in \bb{confusion matrices}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=5cm]{6 - Confusion.png}
+\end{figure}
+Each sector of the matrix represents an outcome:
+\begin{itemize}
+    \item \textit{normal-normal}: true positives, meaning normal points identified as normal
+    \item \textit{normal-legendary}: false negatives, meaning anomalies identified as normal
+    \item \textit{legendary-normal}: false positives, meaning normal points identified as anomalies
+    \item \textit{legendary-legendary}: true negatives, meaning anomalies identified as anomalies
+\end{itemize}
+% 4.3.2 - Probabilities
+\subsubsection{Probabilities}
+We can compute some probabilities:
+\begin{itemize}
+    \item \bb{True positive rate}: \textcolor{darkgray}{TPR $= \displaystyle\frac{\#\{\text{anomalies correctly detected}\}}{\#\{\text{anomalies}\}}$}
+    \item \bb{False positive rate}: \textcolor{darkgray}{FPR $= \displaystyle\frac{\#\{\text{normal samples detected as anomalies}\}}{\#\{\text{normal samples}\}}$}
+    \item False negative rate: \textcolor{darkgray}{FNR $= 1 - $TPR}
+    \item True negative rate: \textcolor{darkgray}{TNR $ = 1 - $FPR}
+    \item \bb{Precision}: \textcolor{darkgray}{P $= \displaystyle\frac{\#\{\text{anomalies correctly detected}\}}{\#\{\text{detections}\}}$}
+    \item \bb{Recall}: \textcolor{darkgray}{R $=$ TPR}
+\end{itemize}
+We always trade-off TPR and FPR through some hyperparameters. In order to assess the method performance, we must choose at least two indicators among TPR and FPR, or \bb{accuracy} and \bb{F1-score}:
+\begin{align*}
+    &\textcolor{darkgray}{acc = \displaystyle\frac{\#\{\text{anomalies detected}\} \ + \ \#\{\text{normal samples not detected}\}}{\#\{\text{samples}\}}} \\
+    &\textcolor{darkgray}{F1 \ score = \displaystyle\frac{\#2\{\text{anomalies detected}\}}{\#\{\text{detections}\} \ + \ \#\{\text{anomalies}\}}}
+\end{align*}
+Accuracy and F1-score are \rr{$= 1$} with ideal methods having no false positives. Since compared methods must be configured in their best conditions, we design the \bb{Receiver Operating Characteristic curve} (\bb{ROC}): the larger the \bb{area under the curve} (\bb{AUC}) for a method, the better the method. The best hyperparameter is the one closer to the point \rr{$(0,1)$}.
+
+\newpage
+
+% ------------------------ %
+% Chapter 5: Deep Learning
+% ------------------------ %
+\section{Deep Learning}
+In a learning framework, there exist two different approaches: the \bb{traditional approach}, which builds on features hand-crafted by experts, and the \bb{deep learning approach}, wherein features are tasks to be learned. In both the approaches, features are \bb{abstracted hierarchically}.
+
+% 5.1 - Convolutional Neural Networks
+\subsection{Convolutional Neural Networks}
+Given an image as input, \bb{Convolutional neural networks} (\bb{CNNs}) take advantage of space affinities among neighbors through \bb{convolutional} and \bb{pooling layers}, each computing a higher abstract representation making the image shrink at each step. Finally, feature maps are concatenated in a vector and fed to a feedforward neural network.
+% 5.1.1 - Convolutional Layers
+\subsubsection{Convolutional Layers}
+Convolutional layers evaluate affinities based on the principle of locality by applying a \bb{receptive field} to the image. The kernel \rr{$K$}, or filter, contains the parameters to be learned. Many filters can be applied in parallel, each providing a different feature map. Given an original matrix \rr{$I$} and a filter \rr{$K$}, we obtain the image \rr{$M$}:
+\cc{$M = I \cdot K$}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{7 - Conv Layer.png}
+\end{figure}
+% 5.1.2 - Pooling Layers
+\subsubsection{Pooling Layers}
+Pooling layers reduce the image size based on some rules. There are two different operators:
+\begin{itemize}
+    \item \concept{Max Pooling}
+        The pixel with the maximum values is carried out
+    \item \concept{Average Pooling}
+        The average value of the pixels is carried out
+\end{itemize}
+
+% 5.2 - Special Activation Functions
+\subsection{Special Activation Functions}
+% 5.2.1 - Rectified Linear Unit Activation Function
+\subsubsection{Rectified Linear Unit Activation Function}
+Stacking many layers may lead to problems when performing backpropagation; the \bb{Rectified Linear Unit} (\bb{ReLU}) mitigates those problems.
+% 5.2.2 - Softmax Activation Function
+\subsubsection{Softmax Activation Function}
+The \textbf{softmax activation function} takes an image as input and outputs a vector representing a probability distribution over the possible classes:
+\cc{$\sigma(z)_j = \displaystyle\frac{e^{z_j}}{\displaystyle\sum^K_{k = 1}e^{z_k}}$}
+
+% 5.3 - Autoencoders
+\subsection{Autoencoders}
+\bb{Encoders} and \bb{decoders} learn a compact representation of the input space and filter out the noise in input data to generate novel patterns. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{9 - Encoders.png}
+\end{figure}
+
+\newpage
+
+% ------------------------------ %
+% Chapter 6: Results From Theory
+% ------------------------------ %
+\section{Results From Theory}
+% 6.1 - Vapnik Chervonenkis Dimension
+\subsection{Vapnik Chervonenkis Dimension}
+Consider a binary classification problem and a family of models \rr{$f(\theta, x)$}: the \bb{Vapnik Chervonenkis dimension} (\bb{VC}) \rr{$d_{VC}$} is the maximum number of points for which there is at least one layout such that the classification makes no errors.
+
+% 6.2 - Uniform Convergence of Empirical Mean
+\subsection{Uniform Convergence of Empirical Mean}
+The \bb{Uniform Convergence of Empirical Mean property} (\bb{UCEM}) states that the empirical mean converges to its expectation uniformly as \rr{$n$} goes to infinity and for each element of an arbitrarily selected finite sequence of parameter estimates. If \rr{$M$} is finite, then the right term goes to $0$ as $n$ tends to infinity. The property holds for a family of functions composed of infinite models, provided that the VC dimension is finite:
+\cc{$A = \{L(\theta,x), \theta \in \Theta\}$}
+
+% 6.3 - Traditional Statistical Approach
+\subsection{Traditional Statistical Approach}
+Consider a single hidden layer FNN and a binary output: given \rr{$d$} weights, the VC dimension is \rr{$O(d log(d))$}. We can extend the results to the regression case by considering the Pollard dimension of family \rr{$A$} instead.
+
+% 6.4 - Bias-Variance Tradeoff
+\subsection{Bias-Variance Tradeoff}
+We wish to evaluate the \bb{expected test error} for a given \rr{$x$} and a quadratic loss function:
+\cc{$SE_{PE} = \sigma^2_\eta + E \left[(g(x) - E[f(\hat{\theta}, x)])^2\right]+E\left[(E[f(\hat{\theta}, x)] - f(\hat{\theta}, x))^2\right]$}
+The expectation is taken w.r.t. the realizations of training set and noise. The accuracy performance of the approximating model depends on three terms:
+\begin{itemize}
+    \item The variance of the noise, which cannot be canceled out
+    \item The bias, which is the error we should expect on the average; a model with high bias badly approximates the unknown function
+    \item The variance introduced by considering one model, associated with the training set; a model family with high variance is sensitive to the selection of the training set
+\end{itemize}
+A complex model has a high variance since it could lead to different results with small changes in the data; on the contrary, a simple model has a low variance since the results are very close to each other. By using more flexible learning methods, the variance increases and the bias decreases. On the contrary, the variance can be decreased by increasing the bias in the parameters.
+
+\newpage
+
+% ---------------------------------------- %
+% Chapter 7: Other Classification Families
+% ---------------------------------------- %
+\section{Other Classification Families}
+% 7.1 - Classification and Regression Trees
+\subsection{Classification and Regression Trees}
+The \bb{Classification and Regression Trees} (\bb{CART}) method partitions the input space in regions assigning a value \rr{$\hat{y}_{R_i}$} through a tree of splits. The regions split are learnt from the training set. The \bb{recursive binary splitting} heuristic is:
+\begin{enumerate}
+    \item Split along a component \rr{$d$} according to a threshold \rr{$t$}
+    \item Identify the branches of a region \rr{$R$}:
+        \begin{align*}
+            &\textcolor{darkgray}{R_{\text{left}}(d,t) = R \ \cap \ \{x:x_d\leq t\}} \\
+            &\textcolor{darkgray}{R_{\text{right}}(d,t) = R \ \cap \ \{x:x_d > t\}}
+        \end{align*}
+    \item Stop if there are few points in the leaf region
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{10 - CART.png}
+\end{figure}
+Thresholds are found by minimizing over the estimated value, \rr{$d$}, and \rr{$t$}. CART can be used for both regression and classification. The key issue consists in the interpretability of results.
+
+% 7.2 - Bagging
+\subsection{Bagging}
+\bb{Bagging} mitigates the high variance obtained by generating different models while training trees on different datasets. Consider taking \rr{$B$} independent training sets and building a model on each of them, generating a \bb{forest}; then, we consider the \bb{ensamble} model, meaning the average tree:
+\cc{$\hat{f}_{\text{avg}}(x)= \displaystyle\frac{1}{B}\displaystyle\sum^B_{b=1}\hat{f}^b(x)$}
+
+% 7.3 - Maximal Margin Classifier
+\subsection{Maximal Margin Classifier}
+The \bb{maximal margin classifier} looks at the region of space occupied by the data. Let the separating hyperplane be: 
+\cc{$w^Tx+b=0$}
+We must find the \bb{plus-hyperplane} and the \bb{minus-hyperplane}:
+\begin{align*}
+    &\textcolor{darkgray}{w^Tx + b = M \geq 0 \ \Rightarrow \ y = 1} \\
+    &\textcolor{darkgray}{w^Tx + b = - M < 0 \ \Rightarrow \ y = -1} \\
+    &\textcolor{darkgray}{y_i(w^Tx_i + b) \geq 1}
+\end{align*}
+Now we define \rr{$x_m$} and \rr{$x_p$} as points belonging to the two facing hyperplanes:
+\cc{$w^T(x_p-x_m) = 2$}
+The margin is the following projection:
+\cc{$\displaystyle\frac{1}{||w||}w^T(x_p-x_m)$}
+The margin is evaluated as follows:
+\cc{$\displaystyle\frac{2}{||w||}$}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=4cm]{11 - Maximl Margin.png}
+\end{figure}
+In order to maximize the margin, we solve the relation through quadratic programming:
+\cc{$\min_w||w||^2_2$ \ \ s.t. \ \ $y_i(w^Tx_i+b) \geq 1 \ \forall i$}
+
+% 7.4 - Support Vector Classifier
+\subsection{Support Vector Classifier}
+When data points are not linearly separable, we use the \bb{Support Vector Classifier} (\bb{SVC}), or soft margin, which tolerates errors by introducing slack variables \rr{$\varepsilon_i$}:
+\cc{$\displaystyle\min_{w,\varepsilon_i}||w||_2^2 + \lambda \displaystyle\sum^n_i \varepsilon_i$}
+The hyperplane is determined by the \bb{support vectors} (\bb{SV}), meaning the points on the wrong side of the plus- and minus-hyperplanes or by those lying on them.
+
+% 7.5 - Kernel and Support Vector Machines
+\subsection{Kernel and Support Vector Machines}
+Consider embedding the input data: if the embedded space is rich, then it is easier to solve the problem there. A \textbf{Support Vector Machine} (\textbf{SVM}) uses a \textbf{kernel} to transpose non-linearly separable data in higher dimensions in order to define an hyperplane. There are different types of kernels:
+\begin{itemize}
+    \item \concept{Polynomial Kernel}
+        Uses a polynomial of degree \rr{$d$}:
+            \cc{$K(x,x')=(c+x^Tx')^d$}
+    \item \concept{RBF Kernel}
+        Uses a value $\gamma$ to indicate the neighborhood tightness and has an infinitely dimensional mapping space:
+            \cc{$K(x,x')=e^{-\gamma||x-x'||^2}$}
+\end{itemize}
+
+
+\newpage
+
+% -------------------------------- %
+% Chapter 8: Unsupervised Learning
+% -------------------------------- %
+\section{Unsupervised Learning}
+In unsupervised learning, we aim at discovering properties of a dataset \rr{$\{x_1\dots x_n\}$} with no label \rr{$y$}, experiencing dimensionality reduction projecting data on a subspace and clustering data in subgroups.
+
+% 8.1 - Isolation Forest
+\subsection{Isolation Forest}
+\bb{Isolation Forest} (\bb{IFOR}) is a tree-based method that explicitly isolates anomalies: given a random uniform splitting criterion and a $k$-dimensional tree, it isolates an anomalous point \rr{$x_0$} w.r.t. a genuine point \rr{$x_i$}. Anomalies lie in leaves with shallow depth. Given a dataset \rr{$X_n$}, for each training set:
+\begin{enumerate}
+    \item Select an axis to split
+    \item Determine a split point
+    \item Stop splitting if:
+        \begin{itemize}
+            \item Depth limit is reached
+            \item There is one point in the leaf
+            \item All the points in the leaf have the same value
+        \end{itemize}
+    \item Compute the average path length among all trees given a test point \rr{$x$}:
+        \cc{$E(h(x))$}
+    \item Point \rr{$x$} is anomalous if:
+        \cc{$s(x,n)= 2^{-\frac{E(h(x))}{c(n)}}>T$}
+        \begin{itemize}
+            \item \rr{$c(n)$} is the average path length in generic binary trees
+            \item \rr{T} is the threshold
+        \end{itemize}
+\end{enumerate}
+The average path lengths of \rr{$x_0$} and \rr{$x_i$} converge if the number of trees increases.
+\newpage
+% 8.2 - Principal Component Analysis
+\subsection{Principal Component Analysis}
+The \bb{Principal Component Analysis} (\bb{PCA}) changes the reference system through rotation: the new axes show the largest data scattering. Given \rr{$d$}-dimensional data points \rr{$\{x_1',\dots,x_n'\}$}:
+\begin{enumerate}
+    \item Center the data:
+        \cc{$x_i = x_i' - \displaystyle\frac{1}{n}\displaystyle\sum_{j=1}^nx'_j$}
+    \item Group the data:
+        \cc{$X=[x_1|\dots|x_n]$}
+    \item Compute the sample covariance matrix:
+        \cc{$\hat{\Sigma}=\displaystyle\frac{1}{n-1}X^TX$}
+    \item Consider the symmetrical semidefinite positive matrix:
+        \cc{$H = U\Lambda U^T$}
+    \item Rotate the axes:
+        \cc{$U=[U_1|\dots|U_d]$}
+    \item Remove the smallest \rr{$l$} eigenvalues and group the remaining eigenvectors:
+        \cc{$\tilde{U} = [U_1|\dots|U_{l+1}]$}
+    \item Project the data points reducing the dimension by means of:
+        \cc{$\tilde{x} = U^Tx$}
+        Each component of \rr{$\tilde{x}$} is a \bb{principal component}
+\end{enumerate}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{12 - PCA.png}
+\end{figure}
+Dimensional reduction is achieved by embedding vectors from \rr{d} to a \rr{d-l} dimensional space. The spectral decomposition theorem grants that the information lost in the worst-case is:
+\cc{$||H-\tilde{H}||_2 = \lambda_l$}
+
+% 8.3 - K-means Clustering
+\subsection{K-means Clustering}
+Clustering groups points so that those in the same clusters are close to each other. Consider a dataset \rr{$\{x_1, \dots, x_n\}$} and a number of clusters \rr{K}; \bb{K-means clustering} searches for \rr{K} means and assigns each point to a class:
+\begin{enumerate}
+    \item Extract the means \rr{$\mu_K$} randomly from \rr{$x_n$} data points
+    \item Create \rr{$K$} clusters by searching for the minimal Euclidean distance between each \rr{$\mu_K$} and a point:
+        \cc{$\hat{k} = \displaystyle\argmin_{k\in\{1,\dots,K\}}||x_i-\mu_K||_2$}
+    \item Recompute the means: 
+        \cc{$\mu_K=\displaystyle\frac{1}{|C_k|}\displaystyle\sum_{i\in C_k}x_i$}
+    \item If clusters change, then repeat from step $2$
+\end{enumerate}
+
+\newpage
+
+% ---------------------- %
+% Chapter 9: Forecasting
+% ---------------------- %
+\section{Forecasting}
+% 9.1 - Time Series
+\subsection{Time Series}
+A \bb{time series} \rr{X} is a sequence of random variable indexed in discrete time order:
+\cc{$X = \{X_t \in \mathbb{R}^d \ | \ t = 0,1,\dots\}$}
+If \rr{$d=1$}, then \rr{X} is \bb{univariate}; otherwise, \rr{X} is \bb{multivariate}.
+% 9.1.1 - Stationarity
+\subsubsection{Stationarity}
+A process generating data is \bb{stationary} if the data are realizations of a random variable with a distribution that does not change over time. A process is \bb{weakly-stationary} if only the first two moments of the random variable do not change; its covariance matrix depends on the time difference:
+\cc{$T=r-s \ \ \ \ r,s \in T$}
+% 9.1.2 - Time Invariance
+\subsubsection{Time Invariance}
+A process is \bb{time invariant} if its outputs do not explicitly depend on time (i.e., time does not appear in the equation). On the other hand, a process is \bb{time variant} if its outputs depend on time (i.e. time is in the equation).
+% 9.1.3 - White Noise Process
+\subsubsection{White Noise Processes}
+A \bb{white noise process} is a sequence of independent random variables with mean \rr{$\mu_x = 0$} and \rr{Var $= \sigma^2$}. It is unpredictable since unrelated at different time steps.
+
+% 9.2 - Linear Time Invariance Models
+\subsection{Linear Time Invariance Models}
+A \bb{Linear Time Invariant model} (\bb{LTI}) predicts linear time series.
+% 9.2.1 - AR - Autoregressive Predictive Model
+\subsubsection{AR - Autoregressive Predictive Model}
+A stationary time series is \bb{autoregressive of order p} (\bb{AR(p)}) if:
+\cc{$y(t) = \phi_1x(t-1) + \dots + \phi_px(t-p) + \eta(t)\ \ \ \ \ \eta(t) \sim WN(0,\sigma^2)$}
+The AR transfer function is composed of \bb{zeros} over \bb{poles} and represent the solution of \rr{A(z) = 0}:
+\cc{$H(z) = \displaystyle\frac{1}{A(z)} =\displaystyle\frac{z^p}{z^p-\phi_1z^{p-1}- \dots-\phi_p}$}
+AR models are used if the data has some structure. If each pole has magnitude \rr{$\in [0,1]$}, then the system is BIBO stable.
+% 9.2.2 - MA - Moving Average Predictive Model
+\subsubsection{MA - Moving Average Predictive Model}
+A stationary time series is a \bb{moving average order q} (\bb{MA(q)}) if:
+\cc{$y(t) = \theta_1\eta(t-1) + \dots + \theta_q\eta(t-q) + \eta(t) \ \ \ \eta(t) \sim WN(0,\sigma^2)$}
+The MA transfer function is:
+\cc{$H(z) = C(z) = \displaystyle\frac{z^q + \theta_1z^{q-1}+ \dots + \theta_q}{z^q}$}
+MA models are used if data show an apparent randomness. MAs are always BIBO stable.
+% 9.2.3 - ARMA - Autoregressive Moving Average Predictive Model
+\subsubsection{ARMA - Autoregressive Moving Average Predictive Model}
+An \bb{Autoregressive Moving Average} (\bb{ARMA(p,q)}) model combines AR(p) and MA(q) for stationary time series:
+\cc{$y(t) =\eta(t) + \displaystyle\sum^p_{i=1} \phi_ix(t-i) + \displaystyle\sum^q_{j=1}\theta_j\eta(t-j)$}
+The ARMA transfer function is:
+\cc{$H(z)=\displaystyle\frac{C(z)}{A(z)}$}
+The \rr{p + q} parameters can be estimated via LMS only if \rr{q=0} since lagged errors are unobservable otherwise. They can be estimated through MLE if the process is gaussian, if the noise terms are iid, if data is centered, and if the joint pdf is \rr{$f_\Theta = (X_1, \dots, X_p)$}:
+\cc{$\displaystyle\frac{\partial\log(L(\Theta|X))}{\partial\Theta} = 0$}
+ARMA models are used if data have some structure and there is noise conditioning them. BIBO stability depends on the AR part. 
+% 9.2.4 - ARIMA - Autoregressive Integrated Moving Average Predictive Models
+\subsubsection{ARIMA - Autoregressive Integrated Moving Average Predictive Models}
+An \bb{Autoregressive Integrated Moving Average} (\bb{ARIMA(p,d,q)}) model generalizes an ARMA model through differentiation describing non-stationary time series:
+\cc{$\hat{y}(t) = \displaystyle\sum^p_{i=1} \phi_ig_i(t) + \displaystyle\sum^q_{j=1}\theta_jf_j(t)$}
+The single optimal step-ahead predictor is:
+\cc{$\hat{y}(t) = (1 - H^{-1})y(t)$}
+ARIMA models are used when there is a trend that might drift away.
+
+% 9.3 - Sliding Window Approach
+\subsection{Sliding Window Approach}
+In the \bb{sliding window approach}, inputs are regressor vectors of fixed time-lagged data, associated with a window size \rr{$n_T$} sliding over time series. A predictor \rr{f} forecasts the next time series values.
+
+% 9.4 - Exogenous LTI Models
+\subsection{Exogenous LTI Models}
+LTI models can include \bb{exogenous variables}, one for each factor that influences data, providing hints for predictions: an AR model becomes an \bb{Autoregressive Exogenous variables} (\bb{ARX}), and an ARMA model becomes an \bb{Autoregressive Moving Average Exogenous variables} (\bb{ARMAX}). Given an exogenous variable \rr{$u(t)$}, the optimal predictor is:
+\cc{$\hat{y}(t) = (1 - H^{-1})y(t) + H^{-1}Gu(t)$}
+
+% 9.5 - Recurrent Neural Networks
+\subsection{Recurrent Neural Networks}
+Autoregressive non-linear predictive models use past observations to forecast. In \bb{Recurrent Neural Networks} (\bb{RNNs}), hidden states are given their own dynamics and the networks present their own memory. The network state at time \rr{t} is a summary of past events:
+\cc{$h(t) = f_\Theta(h(t-1), x(t))$}
+The optimal predictor is:
+\cc{$\hat{y}(t)=h(t)V_{RNN}$}
+% 9.5.1 - RNNs with Long Short-Term Memory
+\subsubsection{RNNs with Long Short-Term Memory}
+RNNs with \bb{Long Short-Term Memory} deal with gradient-related problems. The inner state is a linear combination of the old and the new ones.
+% 9.5.2 - Gated Recurrent Units
+\subsubsection{Gated Recurrent Units}
+\bb{Gated Recurrent Units} (\bb{GRUs}) are RNNs with LSTM where the forget gate and the input gate merge. The cell updates \rr{$u(t)$} and \rr{$r(t)$}.
+% 9.5.3 - Deep RNNs
+\subsubsection{Gated Recurrent Units}
+\bb{Deep RNNs} have stacking recurrent layers on top of each other. Given the hidden state \rr{$h_l(t)$} at time \rr{$t$} for layer \rr{$l$}:
+\cc{$h_0(t)=x(t) \ \ \ h_l(t) = f_{\Theta}(h_l(t-1), h_{l-1}(t))$}
+
+% 9.6 - Multi-step Prediction Strategies
+\subsection{Multi-step Prediction Strategies}
+% 9.6.1 - Recursive Strategy
+\subsubsection{Recursive Strategy}
+In a \bb{recursive strategy}, a single model is trained to perform a one-step ahead forecast given an input sequence. The output is recursively fed back and considered the correct one. The output vector is composed of the predicted \rr{$n_0$} scalars.
+% 9.6.2 - Direct Strategy
+\subsubsection{Direct Strategy}
+A \bb{direct strategy} designs \rr{$n_0$} predictors \rr{$f_k$}, each forecasting at time \rr{$t+k$} and outputting a scalar. The input vector is the same to all the predictors.
+% 9.6.3 - Multiple Input - Multiple Output Strategy
+\subsubsection{Multiple Input - Multiple Output Strategy}
+In a \bb{Multiple Input - Multiple Output strategy} (\bb{MIMO}), a predictor \rr{$f$} is trained to forecast a whole output sequence of length \rr{$n_0$} in one-shot. Differently from the others, the predictor output is a vector.
+
+\newpage
+
+% ---------------------------------- %
+% Appendix A - Mathematical Concepts
+% ---------------------------------- %
+\section{Appendix A - Mathematical Concepts}
+\concept{Independent and Identical Distribution}
+Data is identically and independently distributed if there is no time dependency among consecutive samples distributed by an identical pdf.
+\vspace{0.2cm} \\
+\concept{Stationary Points}
+The stationary point of a function are those points where the derivative is \rr{$0$} and where the function is neither increasing nor decreasing.
+\vspace{0.2cm} \\
+\concept{Realization of a Random Variable}
+The realization of a random variable is the result of applying it to an experiment observed outcome.
+\vspace{0.2cm} \\
+\concept{Transfer Function}
+A transfer function of a system models its output for each possible input.
+\vspace{0.2cm} \\
+\concept{BIBO Stability}
+A system is BIBO stable if each output of a bounded input is bounded.
+
+\end{document}

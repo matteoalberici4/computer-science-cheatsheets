@@ -1,0 +1,964 @@
+
+\documentclass{article}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, float, graphicx, hyperref}
+
+\title{Theory of Computation}
+\author{Matteo Alberici}
+\date{February 2022}
+
+\begin{document}
+\maketitle
+\vspace{2cm}
+\noindent
+\large\textit{What are the fundamental capabilities and limitations of computers?}
+\newpage
+\tableofcontents
+\newpage
+
+% ----------------------- %
+% Chapter 1: Introduction
+% ----------------------- %
+\section{Introduction}
+\subsection{Automata, Computability, and Complexity}
+The theory of computation consists of three areas: 
+\begin{itemize}
+    \item \textbf{Complexity Theory}
+        \vspace{0.2cm} \\
+        What makes problems computationally hard or easy?
+    \item \textbf{Computability Theory}
+        \vspace{0.2cm} \\
+        What problems can(not) computers solve?
+    \item \textbf{Automata Theory}
+        \vspace{0.2cm} \\
+        Deals with defining mathematical models of computation
+\end{itemize}
+\subsection{Mathematical Notions and Terminology}
+\subsubsection{Sets}
+A \textbf{set} is a group of unique unordered \textbf{elements} seen as a unit:
+\begin{center}
+    $S = \{1, \ ciao, \ 3\}$, $T = \{\emptyset\}$
+\end{center}
+Set $A$ is a \textbf{subset} of set $B$ if every element of $A$ is a member of $B$:
+\begin{center}
+    $A \subseteq B$
+\end{center}
+Moreover, $A$ is a \textbf{proper subset} of $B$ if $A$ is not equal to $B$:
+\begin{center}
+    $A \subset B$
+\end{center}
+The \textbf{union} of sets $A$ and $B$ is the set containing all the elements in $A$ and all those in $B$:
+\begin{center}
+    $A \cup B$
+\end{center}
+The \textbf{intersection} of sets $A$ and $B$ is the set containing the elements that are in both $A$ and $B$:
+\begin{center}
+    $A \cap B$
+\end{center}
+\noindent
+The \textbf{complement} of set $A$ is the set of all elements not in $A$:
+\begin{center}
+    $\bar{A}$
+\end{center}
+The \textbf{power set} $P(A)$ is the set of all the subsets of $A$. \\
+The \textbf{Cartesian product} of sets $A$ and $B$ is the set of all ordered pairs wherein the first element is a member of $A$ and the second one is a member of $B$:
+\begin{center}
+    $A \times B$
+\end{center}
+\subsubsection{Sequences and Tuples}
+A \textbf{sequence} is an ordered list of objects:
+\begin{center}
+    $(1, 2, 3)$
+\end{center}
+A finite sequence is a \textbf{tuple}: a \textbf{k-tuple} contains $k$ elements.
+\subsubsection{Graphs}
+A \textbf{graph} is a set of \textbf{nodes} connected with \textbf{edges}. We can label nodes and edges, obtaining a \textbf{labeled graph}. In a \textbf{directed graph}, edges have directions. \\
+A \textbf{path} is a sequence of nodes connected by edges.
+\subsubsection{Strings and Languages}
+An \textbf{alphabet} $\Sigma$ is a nonempty finite set of \textbf{symbols}:
+\begin{center}
+    $\Sigma = \{a,b,c,...,z\}$
+\end{center}
+A \textbf{string over an alphabet} is a sequence of symbols from $\Sigma$:
+\begin{center}
+    $abracadabra$ is a string over $\Sigma$
+\end{center}
+The \textbf{empty string} $\varepsilon$ is the string with a length of $0$. \\
+Given two strings $x$ and $y$, the \textbf{concatenation} $xy$ is obtained by appending $y$ (suffix) to the end of $x$ (prefix).
+A \textbf{language} $L$ is a set of strings over a given alphabet.
+\subsubsection{Boolean Logic}
+\textbf{Boolean logic} is a mathematical system built around the \textbf{Boolean values} \textcolor{ForestGreen}{true} and \textcolor{red}{false}, manipulated through \textbf{Boolean operations}:
+\begin{itemize}
+    \item \textbf{Negation}: returns the opposite value ($NOT$ - $\neg$)
+    \item \textbf{Conjunction}: returns $1$ if both values are $1$ ($AND$ - $\land$)
+    \item \textbf{Disjunction}: returns $1$ if either of the values is $1$ ($OR$ - $\lor$) 
+    \item \textbf{Exclusive or}: returns $1$ if only one value is $1$ ($XOR$ - $\oplus$)
+    \item \textbf{Equality}: returns $1$ if both values have the same value ($\iff$)
+    \item \textbf{Implication}: returns $0$ iff the first operand is $1$ and the second one is $0$ ($\implies$)
+\end{itemize}
+The \textbf{distributive law} for $AND$ and $OR$ states that:
+\begin{itemize}
+    \item $P \land (Q \lor R) \ \iff \ (P \land Q) \lor (P \land R)$
+    \item $P \lor (Q \land R) \ \iff \ (P \lor Q) \land (P \lor R)$
+\end{itemize}
+\subsection{Regular Languages}
+The theory of computation uses an idealized computer called a \textbf{computational model}. 
+\subsubsection{Finite Automata}
+The simplest computational model is the \textbf{finite automaton} (\textbf{FA}). It receives a string in input and, by processing it, either \textbf{accepts} or \textbf{rejects} it. 
+An FA is defined by the following \textbf{5-tuple}:
+\begin{center}
+    $A = (Q, \Sigma, \delta, q_0, F)$, where
+\end{center}
+\begin{itemize}
+    \item $Q$ is the finite set of states
+    \item $\Sigma$ is the finite input alphabet
+    \item $\delta:Q\times\Sigma\rightarrow Q$ is the transition function
+    \item $q_0 \in Q$ is the initial state
+    \item $F \subseteq Q$ is the accepting state
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{Figure 1 - FA.png}
+    \caption{DFA example}
+\end{figure}
+\noindent
+A language is \textbf{regular} if an FA recognizes it. Given the set $A$ of all strings accepted by a machine $M$, then $A$ is the \textbf{language of machine} $M$:
+\begin{center}
+    $L(M) = A$ 
+\end{center}
+\newpage
+\noindent
+There are three \textbf{regular operations} concerning regular languages:
+\begin{itemize}
+    \item \textbf{Union}: $A \cup B = \{x \ | \ x \in A$ or $x \in B\}$
+    \item \textbf{Concatenation}: $AB = \{xy \ | \ x \in A$ and $y \in B\}$
+    \item \textbf{Star}: $A* = \{x_1,x_2,...,x_k \ | \ k \geq 0$ and $x_i \in A\}$
+\end{itemize}
+\subsection{Nondeterminism}
+In a \textbf{nondeterministic finite automaton} (\textbf{NFA}), several choices may exist for the next state:
+\begin{itemize}
+    \item Multiple ways to proceed: the machine \textbf{splits} into copies
+    \item No ways to proceed: the copy \textbf{dies}
+    \item A copy is in an accepting state: the string is accepted
+    \item An $\varepsilon$ transition exists: the machine \textbf{splits immediately}
+\end{itemize}
+An NFA is defined by the following \textbf{5-tuple}:
+\begin{center}
+    $FA = (Q, \Sigma, \delta, q_0, F)$, where
+\end{center}
+\begin{itemize}
+    \item $Q$ is the set of states
+    \item $\Sigma$ is the input alphabet
+    \item $\delta:Q\times\Sigma_\varepsilon\rightarrow P(Q)$ is the \textbf{transition function}
+    \item $q_0 \in Q$ is the \textbf{initial state}
+    \item $F \subset Q$ is the \textbf{accepting state}
+\end{itemize}
+\subsubsection{From NFA to FA}
+There exist an NFA for each FA: 
+\begin{enumerate}
+    \item Draw $q_0$ and the states reached from it along with an $\varepsilon$ transition
+    \item Draw at least one accepting state
+    \item Draw all transitions
+        \begin{itemize}
+            \item No label: the transition leads to the \textbf{dead state} $\emptyset$  
+            \item $\varepsilon$ transition: the transition leads to the subset of states reached along with it
+        \end{itemize}
+\end{enumerate}
+\subsection{Regular Expressions}
+\textbf{Regular expressions} describe languages by using regular operations:
+\begin{align*}
+    &(0 \cup 1) \rightarrow (\{0\} \cup \{1\}) \rightarrow \{0,1\} = \Sigma \\
+    &\Sigma 0 \rightarrow \{00,10\} \\
+    &0* \rightarrow\{0*\} \rightarrow \{\varepsilon,0, 00, ...\}
+\end{align*}
+$R$ is a regular expression over an alphabet $\Sigma$ if it is at least one of:
+\begin{enumerate}
+    \item $a$, for some $a$ in $\Sigma$
+    \item $\varepsilon$
+    \item $\emptyset$
+    \item $R_1 \cup R_2$, where $R_1$ and $R_2$ are regular expressions
+    \item $R_1R_2$, where $R_1$ and $R_2$ are regular expressions
+    \item $R_1*$, where $R_1$ is a regular expression
+\end{enumerate}
+\subsection{Nonregular Languages}
+To prove if a language is regular or not, we use the \textbf{pumping lemma}, which states that if $L$ is a regular language, then there is a \textbf{pumping length} $p$ such that, if $w$ is a string in $L$ of at least length $p$, then $w$ may be divided into three pieces, $x$, $y$, and $z$, satisfying the following conditions:
+\begin{enumerate}
+    \item $xy^iz \in L$ for each $i \geq 0$
+    \item $|y| > 0$
+    \item $|xy| \leq p$ 
+\end{enumerate}
+We must choose a string $s \in L$ of at least length $p$, then show that no possible division satisfies all conditions. \\
+Let us analyze an example with the following language:
+\begin{center}
+    $L = \{w|w = 0^n1^n$ for $n \geq0\}$
+\end{center}
+\newpage
+\begin{enumerate}
+    \item Assume language $L$ is regular
+    \item A pumping length $p$ must exist such that all strings in $L$ of at least length $p$ can be pumped
+    \item Choose a string $w$ that cannot be pumped:
+        \begin{center}
+            $w=0^p1^p \rightarrow 00...0 11...1$
+        \end{center}
+    \item Show that no division into $xyz$ satisfying all conditions exists:
+        \begin{enumerate}
+            \item $3^{rd}$ condition: $y$ must contain only $0$s
+            \item $2^{nd}$ condition: $y$ must contain at least one $0$
+            \item $1^{st}$ condition: repeating $0$s results in a string $\notin L$
+        \end{enumerate}
+\end{enumerate}
+\subsection{Context-Free Languages}
+A \textbf{context-free grammar} (\textbf{CFG}) is a collection of \textbf{substitution rules} which are composed of a \textbf{variable}, a symbol, and a string, which again is composed of variables or \textbf{terminals}, built as follows:
+\begin{enumerate}
+    \item Write the \textbf{start variable}:
+    \item Find a rule starting with a known variable
+    \item Replace the variable with the correspondent string
+        \begin{align*}
+            &A \rightarrow 0A1 &A\rightarrow0A1 \rightarrow00A11\rightarrow00B11\rightarrow00Z11 \\
+            &A \rightarrow B &A\rightarrow B\rightarrow Z \\
+            &B \rightarrow Z &L = \{0^nZ1^n \ | \ n\geq0\}
+        \end{align*}
+\end{enumerate}
+A language generated by a CFG is a \textbf{context-free language} and is defined by the following \textbf{4-tuple}:
+\begin{center}
+    $L = (V,\Sigma, R, S)$, where
+\end{center}
+\begin{itemize}
+    \item $V$ is the set of variables
+    \item $\Sigma$ is the set of terminals
+    \item $R$ is the set of rules
+    \item $S \in V$ is the start variable
+\end{itemize}
+\newpage
+\noindent
+The following are some properties of CGFs:
+\begin{enumerate}
+    \item Break a language into simpler languages:
+        \begin{itemize}
+            \item Union: 
+                \begin{align*}
+                    &S_1 \rightarrow 0S_11 \ | \ \varepsilon \\
+                    &S_2 \rightarrow 0S_21 \ | \ 01 \\ 
+                    &S \rightarrow S_1 \ | \ S_2
+                \end{align*}
+            \item Concatenation:
+                \begin{align*}
+                    &S_1 \rightarrow 0S_11 \ | \ \varepsilon \\
+                    &S_2 \rightarrow 0S_21 \ | \ 01 \\ 
+                    &S \rightarrow S_1S_2
+                \end{align*}
+        \end{itemize}
+    \item Draw an FA and convert it to its CFG:
+        \begin{enumerate}
+            \item Design a variable $R_i$ for every state $Q_i$
+            \item Add a rule $R_i \rightarrow aR_j$ for the $a-$transition from $Q_i$ to $Q_j$
+            \item Add a rule $R_i \rightarrow \varepsilon$ if $Q_i$ is a final state
+            \item Set the variable $R_0$ for the initial state $Q_0$ 
+        \end{enumerate}
+\end{enumerate}
+A sequence of substitutions is called a \textbf{derivation}. A string is \textbf{ambiguously derived} if it has many derivations; thus, a grammar is \textbf{ambiguous} if it generates at least one ambiguous string.
+\newpage
+\subsection{Pushdown Automata}
+A \textbf{pushdown automaton} (\textbf{PDA}) is an NFA equipped with a \textbf{stack} giving it an unbounded memory needed for some nonregular languages. A PDA is defined by the following \textbf{6-tuple}:
+\begin{center}
+    $P = (Q, \Sigma, \Gamma, \delta, q_0, F)$, where
+\end{center}
+\begin{itemize}
+    \item $Q$ is the set of states
+    \item $\Sigma$ is the alphabet
+    \item $\Gamma$ is the \textbf{stack alphabet}
+    \item $\delta:Q_i\times\Sigma_\varepsilon\times\Gamma_\varepsilon\rightarrow P(Q_j\times\Gamma_{\varepsilon})$ 
+    is the transition function, where:
+        \begin{itemize}
+            \item $Q_i$ is a state
+            \item $\Sigma_\varepsilon$ is an input symbol
+            \item $\Gamma$ is a stack symbol read
+            \item $Q_j$ is the state reached
+            \item $\Gamma_\varepsilon$ is the new symbol on the stack 
+        \end{itemize}
+    \item $q_0$ is the initial state
+    \item $F \subseteq Q$ is the set of accepting states
+\end{itemize}
+The \textbf{transition labels} are written as follows:
+\begin{center}
+    $A,B \rightarrow C$,
+\end{center}
+meaning that if $A$ is read from the input string and $B$ is on top of the stack, then pop $B$ and write $C$.
+
+\newpage
+
+% ------------------------------------------ %
+% Chapter 2: Introduction to Turing Machines
+% ------------------------------------------ %
+\section{Introduction to Turing Machines}
+The \textbf{Turing machine} (\textbf{TM}) is a reasoning machine proposed by Alan Turing to compare problems and solutions. TMs process an infinite \textbf{tape} writing and reading through a \textbf{controller head} while moving left or right. Strings could be accepted or rejected before the end of the input is reached.
+\subsection{Turing Machine Definition}
+A Turing machine is defined by the following \textbf{$7$-tuple}:
+\begin{center}
+    $M = (Q, \Sigma, G, \delta, q_0, q_{accept}, q_{reject})$, where
+\end{center}
+\begin{itemize}
+    \item $Q$ is the finite set of states
+    \item $\Sigma$ is the input alphabet
+    \item $G$ is the \textbf{tape alphabet} and contains the blank symbol
+    \item $\delta:Q\times G\rightarrow Q\times G\times\{L,R\}$ is the transition function
+    \item $q_0$ is the initial state
+    \item $q_{accept}$ is the accepting state
+    \item $q_{reject}$ is the \textbf{rejecting state}
+\end{itemize}
+The \textbf{language of a TM} is the set of strings accepted by that TM. A TM \textbf{decides} a language $L$ if it accepts all the strings $\in L$ and rejects all the strings $\notin L$; thus, a language is \textbf{Turing-decidable} if some TM decides it. \\
+A Turing machine \textbf{recognizes} a language $L$ if it accepts all and only those strings $\in L$; thus, a language is \textbf{Turing-recognizable} if some TM recognizes it. \\
+Every Turing-decidable language is also Turing-recognizable. If $L$ is a Turing-recognizable language, then the TM that recognizes $L$ could suffer from the \textbf{halting problem} and may not find a solution while processing a string $\notin L$. In contrast, the problem does not concern Turing-decidable languages.
+\subsection{Turing Machines Configurations}
+A \textbf{configuration} shows the current state of a Turing machine:
+\begin{center}
+    $C_1 = (uqv)$
+\end{center}
+In $C_1$, the machine is in state $q$ with strings $u$ and $v$ on the tape and the controller head on the first symbol of $v$. A configuration $C_i$ yields another configuration $C_j$ if the machine can legally go from $C_i$ to $C_j$ in a single step. \\
+The \textbf{start configuration} $q_0w$ indicates that the machine is in $q_0$ with the head at the leftmost position. The \textbf{accepting} and the \textbf{rejecting configurations} are called the \textbf{halting configurations} and do not yield further ones. \\
+A machine accepts a string $w$ if there exists a sequence of configurations $C_1, ..., C_k $ such that:
+\begin{enumerate}
+    \item $C_1$ is the start configuration
+    \item $C_i$ yields $C_{i + 1}$ with $(1 \leq i \leq k - 1)$
+    \item $C_k$ is an accepting configuration
+\end{enumerate}
+
+\newpage
+
+% ---------------------------------------------- %
+% Chapter 3: Turing Machines Design and Variants
+% ---------------------------------------------- %
+\section{Turing Machines Design and Variants}
+A Turing machine and its variants recognize the same languages: the invariance of a model to changes is called its \textbf{robustness}.
+\subsection{Turing Machine Variants}
+\subsubsection{Stay Put TMs}
+In \textbf{stay-put Turing machines}, the controller's head can stay in the same position after reading or writing:
+\begin{center}
+    $\delta : Q \times G \rightarrow Q \times G \times \{L,R,S\}$,
+\end{center}
+\subsubsection{Multitape TMs}
+We can convert a single-tape Turing machine (STM) to a \textbf{multitape Turing machine} (\textbf{MTM}) to improve efficiency and simplify decision-making. Given the number of tapes $k$, we define the following transition function:
+\begin{center}
+    $\delta : Q \times G^k \rightarrow Q \times G^k \times \{L,R,S\}^k$,
+\end{center}
+which allows for reading, writing, and moving the heads on many tapes simultaneously. In order to convert an MTM to an STM, we must add a \textbf{delimiter} "\#" to separate the contents of the different tapes and a mark "$\cdot$" to remember the location of the heads.
+\vspace{0.1cm}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 2 - Multitape TM.png}
+    \caption{MTM to STM example}
+\end{figure}
+\newpage
+\subsection{Nondeterministic TMs}
+In \textbf{nondeterministic Turing machines} (\textbf{NTM}), the transition function $\delta$ is the following:
+\begin{center}
+    $\delta:Q \times G \rightarrow 2^{Q \times G \times \{L,R\}}$
+\end{center}
+We obtain a tree whose branches correspond to possibilities: the machine accepts if some branch leads to an accepting state. \\
+Every NTM has an equivalent deterministic TM (DTM): all branches are traversed with the Breadth-First Search algorithm (BFS), accepting if an accepting state is found; otherwise, the machine does not terminate.
+\subsubsection{Enumerator}
+An \textbf{enumerator} is a model which prints out a collection of strings: those strings form an \textbf{enumerated language}. A language is Turing-recognizable if some enumerator enumerates it.
+
+\newpage
+
+% ------------------------------- %
+% Chapter 4: Computability Theory %
+% ------------------------------- %
+\section{Computability Theory}
+A problem is \textbf{solvable} if there exists a \textbf{decider} that decides it. A decider is a TM that always halts with any input.
+\subsection{Acceptance Testing}
+\subsubsection{DFA Acceptance Testing}
+The \textbf{DFA acceptance testing} identifies a decider for $A_{DFA}$:
+\begin{center}
+    $A_{DFA} = \{\langle B,\omega \rangle \ | \ B \text{ is a DFA that accepts string }\omega\}$
+\end{center}
+We simulate $B$ on $\omega$ keeping track of the DFA by writing information on the tape: if the simulation ends in an accepting state, then the machine accepts; otherwise, it rejects.
+\subsubsection{NFA Acceptance Testing}
+The \textbf{NFA acceptance testing} identifies a decider for $A_{NFA}$:
+\begin{center}
+    $A_{NFA} = \{\langle B,\omega \rangle \ | \ B \text{ is a DFA that accepts string }\omega\}$
+\end{center}
+We convert $B$ to a DFA $C$ and simulate it on $\omega$ keeping track of the NDFA by writing information on the tape: if the simulation ends in an accepting state, then the machine accepts; otherwise, it rejects.
+\subsubsection{REX Acceptance Testing}
+The \textbf{REX acceptance testing} determines if a regular expression generates a given string:
+\begin{center}
+    $A_{REX} = \{\langle R,\omega \rangle \ | \ R \text{ is a REX that generates string }\omega\}$
+\end{center}
+\subsection{Emptiness Testing}
+The \textbf{emptiness testing} identifies a decider for $E_{DFA}$:
+\begin{center}
+    $E_{DFA} = \{\langle A\rangle \ | \ A \text{ is a DFA and }L(A) = \emptyset\}$
+\end{center}
+After marking the start state, we mark any state that has an in-transition from a marked state: if no accept state is marked, then the machine accepts; otherwise, it rejects.
+\subsection{Equivalence Testing}
+The \textbf{equivalence testing} identifies a decider for $EQ_{DFA}$:
+\begin{center}
+    $EQ_{DFA} = \{\langle A, B\rangle \ | \ A \text{ and } B \text{ are DFAs and }L(A) = L(B)\}$
+\end{center}
+We design an automaton $C$ with the \textbf{symmetric difference feature}, meaning it accepts nothing when the languages are the same:
+\begin{center}
+    $L(C) = (L(A) \cap \bar{L(B)}) \cup (\bar{L(A)} \cap L(B))$
+\end{center}
+After marking the starting state of $C$, we mark any state that has an in-transition from a marked state: if no accept state is marked, then the machine accepts; otherwise, it rejects.
+\subsection{Decidability of CFLs}
+\subsubsection{CFG Acceptance Testing}
+We must prove the decidability of language $A_{CFG}$. \\
+The decidability results for CFGs are the same for PDAs.
+\subsubsection{CFG Emptiness Testing}
+We must prove the decidability of language $E_{CFG}$. \\
+Given the CFG $\langle G\rangle$ in input, we mark all terminals in $G$, and then we mark any variable $A$ where $G$ has a rule $A \rightarrow U_1U_2...U_k$ with each symbol marked: if the start variable is not marked, the machine accepts; otherwise, it rejects.
+\subsubsection{CFG Equivalence Testing}
+We must prove the decidability of language $EQ_{CFG}$. We cannot reuse the symmetric difference idea since CFLs are not closed under complementation or intersection.
+
+\newpage
+
+% -------------------------------- %
+% Chapter 5: Undecidable Languages %
+% -------------------------------- %
+\section{Undecidable Languages}
+A language is \textbf{undecidable} if there is not a decider for the language. A recognizable language can also be undecidable.
+\subsection{Membership Problem}
+The \textbf{membership problem} is unsolvable and is defined as follows:
+\begin{center}
+    $A_{TM} = \{\langle M,w\rangle \ : \ M\text{ is a TM that accepts string } w\}$
+\end{center}
+Let us suppose that $A_{TM}$ is decidable, then there exists a decider $H$ for the language on input $\langle M,w\rangle$. Let $L$ be a Turing-recognizable language accepted by the TM $N$, then let us build a decider for $L$ on input $\langle N\rangle$.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 3 - Membership Problem.png}
+    \caption{Decider for language $L$}
+\end{figure}
+\noindent
+Since $L$ is decidable and arbitrarily chosen, then every Turing-recognizable language is decidable, which is a contradiction.
+\subsection{Halting Problem}
+\subsubsection{Diagonalization}
+Let $R$ be a relation between $A$ and $B$, then $R$ may have any of the following properties:
+\begin{itemize}
+    \item $\forall x \in A$, there exists at least one $y \in B$, with $x, y \in R$ 
+    \item $\forall x \in A$, there exists at most one $y \in B$, with $x, y \in R$ 
+    \item $\forall y \in B$, there exists at least one $x \in A$, with $x, y \in R$ 
+    \item $\forall y \in B$, there exists at most one $x \in A$, with $x, y \in R$ 
+\end{itemize}
+If a function $f: A\rightarrow B$ is a \textbf{correspondence}, meaning it is \textbf{one-to-one} and \textbf{onto}, then $f$ has all the essential properties and establishes a “pairing” of the elements in $A$ with those in $B$. Thus:
+\begin{itemize}
+    \item \textbf{Existence} - $R$ is onto if:
+    \begin{center}
+        $\forall y \in B$, there exists at least one $x \in A$, with $(x,y) \in R$
+    \end{center}
+    \item \textbf{Uniqueness} - $R$ is one-to-one if:
+    \begin{center}
+        $\forall y \in B$, there exists at most one $x \in A$, with $(x,y) \in R$
+    \end{center}
+\end{itemize}
+For functions from $\mathbb{R}$ to $\mathbb{R}$, the \textbf{horizontal line test} lets us see whether a function is one-to-one or onto or both. The horizontal line $y = b$ crosses the graph of $y = f(x)$ at the points where $f(x) = b$: $f$ is one-to-one if no horizontal line crosses the graph more than once, and onto if every line crosses the graph at least once. \\
+Two sets have the same number of elements if there exists a one-to-one and onto correspondence between them.
+\subsubsection{Countability}
+A set is \textbf{countable} if it is either finite or it is one-to-one and onto with the set of natural numbers $\mathbb{N}$. There are uncountably many languages and countably many TMs.
+\vspace{0.2cm} \\
+\textbf{Theorem}: the set of real numbers is uncountable.
+\vspace{0.1cm} \\
+\textbf{Proof} - Suppose there exists a correspondence between $\mathbb{N}$ and $\mathbb{R}$: if an $x$ in $\mathbb{R}$ is not paired with $n \in \mathbb{N}$, then it leads to a contradiction.
+\subsubsection{Halting Problem Proof}
+The \textbf{halting problem} is unsolvable and occurs when a TM loops while simulating $M$ on $\omega$:
+\begin{center}
+    $HALT_{TM} = \{\langle M,w\rangle \ : \ M\text{ is a TM that halts on input string } w\}$
+\end{center}
+Let us suppose that $HALT_{TM}$ is decidable, then there exists a decider $H$ for the language on input $\langle M,w\rangle$. Let us build a machine $\bar{H}$ by using $H$: $\bar{H}$ loops forever if $M$ halts on input $w$; otherwise, it halts. Let us build a machine $F$: if $M$ halts on input $\langle M \rangle$, then it loops forever; otherwise, it halts.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7.5cm]{Figure 4 - Halting Problem.png}
+    \caption{Machine $F$ representation}
+\end{figure}
+\noindent
+Let us run $F$ on input $\langle F\rangle$: if $F$ halts, then $F$ loops forever; otherwise, it halts. This leads to a contradiction. \\
+By tabulating the results:
+\begin{enumerate}
+    \item $H$ accepts $\langle M,w\rangle$ when $M$ accepts $w$
+    \item $F$ rejects $\langle M\rangle$ when $M$ accepts $\langle M\rangle$
+    \item $F$ rejects $\langle F\rangle$ when $F$ accepts $\langle F\rangle$
+\end{enumerate}
+
+\newpage
+
+% ----------------------------- %
+% Chapter 6: Reduction Approach %
+% ----------------------------- %
+\section{Reduction Approach}
+The \textbf{reduction approach} consists of reducing a problem $X$ to a problem $Y$: if problem $Y$ is solvable, then also problem $X$ is solvable. We map an entity $w$ in a domain $D$ to a \textbf{result region} $S$:
+\begin{center}
+    $w \in D \ \rightarrow \ f(w) \in S$
+\end{center}
+\subsection{Function Computability}
+A function $f$ is \textbf{computable} if there exists a Turing machine $M$ that halts on every input $w$ with $f(w)$ on the tape:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 5 - Computability.png}
+    \caption{Function computability for all $w \in D$}
+\end{figure}
+\subsection{Reduction Definition}
+Language $A$ is reduced to language $B$ through $f$ as follows:
+\begin{center}
+    $A \ \underline<_m \ B, \ \ w \in A \ \Longleftrightarrow \ f(w) \in B, \ \forall w$
+\end{center}
+\vspace{0.2cm}
+\textbf{Reduction Theorem}: if a language $A$ is reduced to a language $B$ which is decidable, then language $A$ is decidable.
+\vspace{0.1cm} \\
+\textbf{Proof} - Let us build a decider for language $A$ by using the decider for language $B$:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 6 - Reduction.png}
+\end{figure}
+\noindent
+\textbf{Negated Reduction Theorem}: if an undecidable language $A$ is reduced to a language $B$, then language $B$ is undecidable.
+\vspace{0.1cm} \\
+\textbf{Proof} - Let us suppose that language $B$ is decidable, then build the decider for language $A$ by using the decider for language $B$: if $B$ is decidable, also $A$ is decidable, which is a contradiction.
+\subsection{State-entry Problem}
+Does a machine $M$ enter state $q$ while processing an input string $w$?
+\begin{center}
+    STATE$_{TM} = \{\langle M, w,q\rangle: M \text{ enters state } q \text{ on input string } w\}$
+\end{center}
+\vspace{0.2cm}
+\textbf{State Theorem}: the language STATE$_{TM}$ is undecidable.
+\vspace{0.1cm} \\
+\textbf{Proof} - Let us reduce language HALT$_{TM}$ to language STATE$_{TM}$: if language STATE$_{TM}$ is decidable, then language HALT$_{TM}$ is decidable, which is a contradiction. We construct $\langle \hat{M} \rangle$ from $\langle M \rangle$, designing a transition for every unused symbol $x$ of $q_i$:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{Figure 7 - State-entry Problem.png}
+\end{figure}
+\noindent
+$\langle M \rangle$ halts on the input string $w$; therefore, $\langle \hat{M} \rangle$ halts on state $q$ on the input string $w$. Equivalently:
+\begin{center}
+    $\langle M, w \rangle \in \ $HALT$_{TM} \Longleftrightarrow \langle \hat{M}, w, q \rangle \in \ $STATE$_{TM}$
+\end{center}
+\vspace{0.2cm}
+\textbf{Reduction Theorem 3}: if an undecidable language $A$ is reduced to $\bar{B}$, then $B$ is undecidable.
+\vspace{0.1cm} \\
+\textbf{Proof} - Let us suppose that $B$ is decidable. Then, also $\bar{B}$ is decidable. Now we build the decider for $A$ by using the decider for $\bar{B}$, which leads to a contradiction:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 8 - Reduction Theorem 3.png}
+\end{figure}
+\subsection{Blank-tape Halting Problem}
+Does a machine $M$ halt if it starts with a blank tape?
+\begin{center}
+    BLANK$_{TM} = \{\langle M\rangle \ : \ M \ $ halts if it starts on blank tape$\}$
+\end{center}
+In order to show that language BLANK$_{TM}$ is undecidable, we reduce HALT$_{TM}$ to BLANK$_{TM}$: if BLANK$_{TM}$ is decidable, then HALT$_{TM}$ is decidable, which is a contradiction.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{Figure 9 - Blank-tape Problem.png}
+    \caption{Decider for HALT$_{TM}$}
+\end{figure}
+Now let us build the reduction $\langle \hat{M}\rangle= f(\langle M,w\rangle)$ such that:
+\begin{center}
+    $\langle M,w\rangle \in$ HALT$_{TM} \ \Longleftrightarrow \ \langle \hat{M}\rangle \in $ BLANK$_{TM}$ 
+\end{center}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6.5cm]{Figure 10 - Blank-tape Problem 2.png}
+    \caption{$\langle\hat{M}\rangle$ representation}
+\end{figure}
+\subsection{Undecidable Problems for Recognizable Languages}
+Let $L$ be a recognizable language and take in input a machine $M$:
+% \newpage
+\begin{itemize}
+    \item EMPTY$_{TM}$ is undecidable:
+        \begin{center}
+            EMPTY$_{TM} = \{\langle M\rangle : M \text{ is a TM that accepts the empty language } \emptyset\}$ $ \rightarrow \ $A$_TM \leq_m$ EMPTY$_TM$ 
+        \end{center}
+    \item REGULAR$_{TM}$ is undecidable:
+        \begin{center}
+            REGULAR$_{TM} = \{\langle M\rangle : M \text{ is a TM that accepts a regular language}\}$ $ \rightarrow \ $A$_TM \leq_m$ REGULAR$_TM$ 
+        \end{center}
+    \item SIZE$2_{TM}$ is undecidable:
+        \begin{center}
+            SIZE$2_{TM} = \{\langle M\rangle : M \text{ is a TM that accepts a exactly two strings}\}$ $ \rightarrow \ $A$_TM \leq_m$ SIZE$2_TM$ 
+        \end{center}
+\end{itemize}
+\subsection{Language Properties}
+A \textbf{non-trivial property} $P$ is possessed by some Turing-recognizable languages, but not all:
+\begin{align*}
+    P_1 : L \text{ is regular?} \\
+    &\text{YES: } L = \emptyset \\ 
+    &\text{NO: } L = \{a^n|n\geq 0\} \\ 
+    &\text{NO: } L = \{a^nb^n | n\geq 0\}
+\end{align*}
+A \textbf{trivial property} $P$ is possessed by all Turing-recognizable languages:
+\begin{align*}
+    &P_2 : L \text{ is accepted by some TM?} \\
+    &\text{True for all Turing-recognizable languages}
+\end{align*}
+
+\newpage
+
+% ---------------------------- %
+% Chapter 7: Complexity Theory %
+% ---------------------------- %
+\section{Complexity Theory}
+\textbf{Complexity theory} seeks to understand what makes problems algorithmically difficult to solve. A decidable problem may not be solvable since the solution could require an inordinate amount of time or memory. The \textbf{running time} of an algorithm as a function of the length of the string representing the input. \\
+Let us consider a deterministic Turing machine $M$ deciding a language $L$: for any string $w$, the computation of $M$ terminates in a finite amount of transitions, which is the \textbf{decision time}. $T_M(n)$ is the maximum time required to decide any string of length $n$. We estimate the running time since the exact one is complex. In \textbf{asymptotic analysis}, we seek to understand the running time of an algorithm with large inputs. \\
+Let us see the following example:
+\begin{center}
+    $A = \{0^k1^k\ |\ k \geq 0\} \ \ \ TM \text{ on input string } w$
+\end{center}
+\begin{enumerate}
+    \item Scan the tape and reject if a $0$ is found to the right of a $1$: $O(n)$
+    \item Repeat if both $0$s and $1$s remain on the tape: $O(n^2)$
+    \item Scan the tape, crossing off a single $0$ and a single $1$
+    \item If $0$s remain after the $1$s have been crossed off, or if $1$s still remain after all the $0$s have been crossed off, reject: $O(n)$
+    \item Otherwise, accept
+\end{enumerate}
+The complexity is evaluated as follows:
+\begin{center}
+    $O(n) + O(n^2) + O(n) = O(n^2) \Rightarrow A \in TIME(n^2)$
+\end{center}
+Let us analyze the last example on a two-tapes TM: each step has an execution time of $O(n)$. \\
+The following are some time classes:
+\begin{itemize}
+    \item \textbf{Deterministic}
+    \vspace{0.2cm} \\
+    All the languages decidable by a DTM that run in $O(T(n))$.
+    \item \textbf{Polynomial}
+    \vspace{0.2cm} \\
+    Tractable algorithms with results decided fastly for small $k$s.
+    \item \textbf{Exponential}
+    \vspace{0.2cm} \\
+    Intractable algorithms that take an enormous amount of time.
+\end{itemize}
+
+\subsection{Post Correspondence Problem}
+We are given two sets of $n$ strings defined as follows:
+\begin{align*}
+    &A=w_1,w_2,...,w_n \\
+    &B=v1_v2,...,v_n
+\end{align*}
+There exists a \textbf{post correspondence solution} if there is a sequence such that:
+\begin{center}
+    $w_iw_j...w_k=v_iv_j...v_k$
+\end{center}
+Indices may be repeated. Let us see the following example:
+\begin{align*}
+    &A: &w_1 = 100 &w_2 = 11 &w_3 = 111 \\ 
+    &B: &v_1 = 001 &w_2 = 111 &w_3 = 11 \\ 
+    \text{PC-Solution: } 2,1,3 \ \rightarrow \ w_2w_1w_3 = v_2v_1v_3
+\end{align*}
+\textbf{Rule \#1}: if every top string is longer than the corresponding bottom one, there can’t be a match.
+\vspace{0.2cm} \\
+\textbf{Rule \#2}: if there is a domino with the same string on the top and on the bottom, then there is a match.
+\vspace{0.2cm} \\
+The \textbf{Post Correspondence Problem} (\textbf{PCP}) consists of finding a match given a set of dominos:
+\begin{center}
+    PCP = $\{$P $|$ P is a set of dominos with a match $\}$
+\end{center}
+Language PCP is undecidable. \\
+The \textbf{Modified Post Correspondence Problem} (\textbf{MPCP}) is defined as follows:
+\begin{align*}
+    &A=w_1,w_2,...,w_n \\
+    &B=v1_v2,...,v_n \\
+    \text{MPC-Solution: } 1,i,j, ...,k \ \rightarrow \ w_1w_iw_j...w_k = v_1v_iv_j...v_k
+\end{align*}
+The MPCP is undecidable, proved by reducing the membership problem to it:
+\begin{enumerate}
+    \item Membership problem (alternatively): given an unrestricted grammar $G$ and a string $w$, $w \in L(G)$?
+    \item Suppose there exists a decider for the MPCP
+    \item Build a decider for the membership problem by using the MPCP decider as a subroutine
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=7cm]{Figure 11.1 - MPCP.png}
+    \end{figure}
+    \item Convert Turing machine $M$ and string $w$ to the sets of strings $A$ and $B$:
+    \begin{center}
+        $M$ accepts $w \Leftrightarrow$ MPC solution for $A$ and $B$
+    \end{center}
+    \item Since membership problem is undecidable, MPCP is undecidable
+\end{enumerate}
+\textbf{PCP Theorem}: PCP is undecidable. \\
+We can prove it by reducing the MPCP to the PCP.
+\begin{enumerate}
+    \item Suppose we have a decider for the PCP
+    \item Build a decider for the MPCP by using the decider for the PCP as a subroutine
+    \item Convert the input instances
+\end{enumerate}
+\subsection{Undecidable Problems for CFGs}
+\subsubsection{Empty-intersection Problem}
+Given to CFGs $G_1$ and $G_2$, the \textbf{empty-intersection problem} is defined as follows:
+\begin{center}
+    $L(G_1) \cap L(G_2) = \emptyset$
+\end{center}
+This problem is undecidable:
+\begin{enumerate}
+    \item Suppose we have a decider for the empty-intersection problem
+    \item Build a decider for the PC problem using the decider for the empty-intersection problem as a subroutine
+    \item Reduce the PC problem to the empty-intersection problem
+\end{enumerate}
+\subsubsection{Ambiguity Problem}
+\textbf{Ambiguity Theorem:} for a context-free grammar $G$, it is undecidable to determine if $G$ is ambiguous. \\
+The theorem is proved by reducing the PC problem to the ambiguity problem:
+\begin{enumerate}
+    \item Suppose we have a decider for the ambiguity problem
+    \item Build a decider for the PC problem using the decider for the ambiguity problem as a subroutine
+    \item Reduce the PC problem with inputs $A$ and $B$ to the ambiguity problem by building CFGs as follows: 
+        \begin{enumerate}
+            \item Define $S_A$ as the starting variable of $G_A$
+            \item Define $S_B$ as the starting variable of $G_B$
+            \item Define $S$ as the starting variable of $G$:
+                \begin{center}
+                    $S \rightarrow S_A |S_B$
+                \end{center}
+        \end{enumerate}
+\end{enumerate}
+Finally, we can state what follows:
+\begin{center}
+    $(A,B)$ has a PC solution $\Leftrightarrow L(G_A) \cap L(G_B) \neq \emptyset \Leftrightarrow G$ is ambiguous  
+\end{center}
+
+\section{Polynomial vs Non-polynomial}
+$P$ is the class of languages that are decidable in \textbf{polynomial time} on a DTM:
+\begin{center}
+    $P = \displaystyle\cup_{k>0}\text{TIME}(n^k)$
+\end{center}
+$P$ is invariant for all models of computation that are \textbf{polynomially equivalent} to the DTM, and represents the class of problems that are realistically solvable on a computer. \\
+$NP$ is the class of languages that are verified in \textbf{non-polynomial time} on a NTM:
+\begin{center}
+    $NP = \displaystyle\cup_{k>0}\text{NTIME}(n^k)$
+\end{center}
+\subsection{Complexity Relation}
+Every $t(n)$ time MTM has an equivalent $O(t^2(n))$ time STM. \\
+\subsubsection{Polynomial Difference}
+Let $N$ be a NTM that is a decider with a running time of $f : N \rightarrow N$, where $f(n)$ is the maximum number of steps that $N$ uses on any branch given an input of length $n$.
+The running time of a NTM characterizes the complexity of the $NP$ class.
+\subsubsection{Exponential Difference}
+Every $t(n)$ time NTM has an equivalent $2^{O(t(n))}$ time DTM.
+\subsubsection{Nondeterminism}
+A NTM decides each string of length $n$ in time $O(t(n))$. The language class is $NTIME(T(n))$. 
+\subsection{Satisfiability Problem}
+Consider the following language:
+\begin{center}
+    $L = \{w \ | \ \text{expression }w\text{ is satisfiable}\} \ \ \ L\in \text{TIME}(2^{n^k})$
+\end{center}
+The needed algorithm searches exhaustively all the possible binary values of the variables. This problem is an NP problem.
+\subsection{Polynomial Time Verifiability}
+A \textbf{verifier} for a language $A$ is an algorithm $V$, where:
+\begin{center}
+    $A = \{w \ | \ V \text{ accepts } \langle w,c\rangle \text{ for some string } c\}$
+\end{center}
+The string $c$ is called \textbf{certificate} and is used to verify that a string $w$ is a member of $A$. \\
+The time of a verifier is only measured in terms of the length of $w$: a polynomial time verifier runs in polynomial time in the length of $w$.
+\subsection{NP-completeness}
+\textbf{Np-complete problems} represent a subset of the NP class. If a polynomial time algorithm exists for any of these problems, all problems in NP could be solved in polynomial time. There are two theoretical implications:
+\begin{enumerate}
+    \item To prove $P=NP$ if one finds a polynomial time algorithm for NP-complete problem
+    \item To prove $P\neq NP$ if any problem in NP requires more than polynomial time, an NP-complete does
+\end{enumerate}
+Furthermore, there is one practical implication:
+\begin{enumerate}
+    \item Do not have to search for non-existing polynomial time algorithms
+\end{enumerate}
+\subsubsection{Polynomial Time Reductions}
+A \textbf{polynomial time reduction} is performed when there exists a DTM $M$ such that for any string $w$ it computes a \textbf{polynomial computable function} $f(w)$ in polynomial time $O(|w|)$:
+\begin{center}
+    $w \in A \Leftrightarrow f(w) \in B$
+\end{center}
+Since $M$ cannot use more than $O(|w|^k)$ tape space in that time, we obtain the following relation:
+\begin{center}
+    $|f(w)| = O(|w|^k)$
+\end{center}
+\textbf{Theorem - }  $A$ is polynomial reducible to $B$; if $B\in P$, then $A \in P$. \\
+Let machine $M$ be the decider for $B$ in polynomial time and machine $M'$ the decider for $A$ in polynomial time. On input string $w$:
+\begin{enumerate}
+    \item Compute $f(w)$
+    \item Run $M$ on input $f(w)$
+    \item If $f(w) \in B$, then accept
+\end{enumerate}
+Let us see the following example in which we reduce the $3$CNF-satisfiability problem to the CLIQUE problem:
+\begin{align*}
+    &3\text{CNF-SAT} =\{ w : w \text{ is a satisfiable 3CNF formula}\} \\
+    &\text{CLIQUE} = \{\langle G,k\rangle : \text{ graph } G \text{ contains } k\text{-clique}\}
+\end{align*}
+The first step consists in transforming the formula into a graph by creating one cluster of nodes for each clause in the formula, then add a link from a literal $x$ to a all the other clauses' literals but each complement $\bar{x}$. \\
+Let us have a look at the following formula
+\begin{center}
+    $(x_1 \cup x_2 \cup \overline{x_4}) \cap (\overline{x_1} \cup \overline{x_2} \cup \overline{x_4}) \cap (x_1 \cup x_2 \cup x_3)\cap(x_2 \cup \overline{x_3} \cup \overline{x_4}) = 1$
+\end{center}
+The values for which the formula is satisfied are the following:
+\begin{center}
+    $x_1 = 1 \ \ x_2 = 0 \ \ x_3 = 0 \ \ x_4 = 1$
+\end{center}
+Therefore, the created graph is the following:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=6cm]{Figure 11.2 - Clique.png}
+\end{figure}
+Finally, the formula is satisfied iff the graph has a $4$-clique.
+\vspace{0.2cm} \\
+A language $L$ is NP-complete if $L \in NP$ and every language in NP is reduced to $L$ in polynomial time. 
+\vspace{0.2cm} \\
+\textbf{Cook-Levin Theorem:} language SAT is NP-complete. \\
+Since SAT $\in NP$, we only need to reduce all NP languages to the SAT problem in polynomial time.
+\vspace{0.2cm} \\
+\textbf{Theorem:} If language $A$ is NP-complete, language $B \in NP$, and $A$ is polynomial time reducible to $B$, then $B$ is NP-complete.
+\vspace{0.2cm} \\
+\subsubsection{Vertex Cover Problem}
+The \textbf{vertex cover} of a graph is a subset of nodes $S$ such that every edge in the graph touches one node in $S$:
+\begin{center}
+    VERTEX-COVER$ = \{ G,k : $ graph $G$ contains a vertex cover of size $k \}$
+\end{center}
+\textbf{Theorem:} VERTEX-COVER is NP-complete. \\
+After having proved that VERTEX-COVER is in NP, we reduce in polynomial time language 3CNF-SAT to VERTEX-COVER:
+\begin{enumerate}
+    \item Let $\varphi$ be a 3CNF formula with $m$ variables and $l$ clauses 
+        \begin{center}
+            $\varphi = (x_1 \cup x_2 \cup x_3) \cap (\bar{x_1} \cup \bar{x_2} \cup \bar{x_4}) \cap (\bar{x_1} \cup \bar{x_2} \cup \bar{x_4})$
+        \end{center}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=6cm]{Figure 12 - Construction blocks.png}
+            \caption{Construction blocks}
+        \end{figure}
+    \item Connect the variables through edges
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=6cm]{Figure 13 - Edges.png}
+            \caption{Connecting variables}
+        \end{figure}
+    \item First direction: if $\varphi$ is satisfied, then $G$ contains a cover of size $k$:
+        \begin{center}
+            $k = m + 2l = 10$
+        \end{center}
+    \item Put every satisfying literal in the cover
+    \item Select one satisfying literal in each clause gadget and include the remaining ones in the cover
+        \begin{figure}
+            \centering
+            \includegraphics[width=6cm]{Figure 14 - Vertex Cover.png}
+            \caption{Vertex cover of $G$}
+        \end{figure}
+        This is a vertex cover since every edge is adjacent to a chosen node \\
+        The first direction is proved
+    \item Second direction: if $G$ contains a vertex-cover of size $k=m+2l$, then $\varphi$ is satisfiable
+    \item Choose one literal in each variable gadget
+    \item Choose $2$ nodes in each clause gadget
+    \item For variable assignment, choose the literals in the cover from variable gadgets
+        The second direction is proved
+\end{enumerate}
+For general case:
+\begin{itemize}
+    \item Edges in variable gadgets are incident to at least one node in cover
+    \item Edges in clause gadgets are incident to at least one node in cover, since two nodes are chosen in a clause gadget
+\end{itemize}
+The general approach for proving that a problem is NP-complete is the following:
+\begin{enumerate}
+    \item Show that problem $B$ belongs to NP
+    \item Find a known NP-complete problem $A$ and show $A \leq_p B$
+\end{enumerate}
+If we can only complete step $2$, then the problem is \textbf{NP-hard}. \\
+The following are three proof techniques:
+\begin{enumerate}
+    \item \textbf{Restriction}
+        \vspace{0.2cm} \\
+        Show that $A$ is a sub-problem of $B$ 
+    \item \textbf{Local Replacement}
+        \vspace{0.2cm} \\
+        Show that every basic unit in an instance of $A$ can be replaced by a different structure in a uniform way to obtain an instance of $B$
+    \item \textbf{Component Design}
+        \vspace{0.2cm} \\
+        Show that the constituents of an instance of $A$ can be used to “design” components that can be combined to “realize” instances of $B$
+\end{enumerate}
+
+\newpage
+
+% ------------------------ %
+% Appendix A: SAT Solvers %
+% ----------------------- %
+\section{Appendix A: SAT Solvers}
+\subsection{Propositional Logic}
+Let us consider boolean variables \textcolor{blue}{shirt} and \textcolor{red}{tie}:
+\begin{itemize}
+    \item One should not wear a \textcolor{red}{tie} without a \textcolor{blue}{shirt}: $\neg$ \textcolor{red}{tie} $\lor$ \textcolor{blue}{shirt}
+    \item Not wearing a \textcolor{red}{tie} nor a \textcolor{blue}{shirt} is impolite: \textcolor{red}{tie} $\lor$ \textcolor{blue}{shirt}
+    \item Wearing a \textcolor{red}{tie} and a \textcolor{blue}{shirt} is overkill: $\neg$(\textcolor{red}{tie} $\land$ \textcolor{blue}{shirt})
+\end{itemize}
+The \textbf{syntax} of a Boolean formula, also known as \textbf{well-formed formula} (\textbf{wff}), defines how to write such a formula, while the \textbf{semantics} concerns interpreting the symbols in a wff to obtain a statement which is either true or false. \\
+A \textbf{propositional language} is a set $L$ of symbols called \textbf{propositional variables} $p_i$. Every $p \in L$ is a wff called an \textbf{atomic formula}. An \textbf{interpretation} $I$ assigns one truth value to every propositional variable. \\
+Given a wff $F$ and an interpretation $I$, we say that $I |= F$ if $F$ evaluates to true under interpretation $I$.
+The following are some properties of wffs:
+\begin{enumerate}
+    \item \textbf{Satisfiability}: there exists at least one $I$ such that $I |= F$
+    \item \textbf{Validity}: for every interpretation $I \ \Rightarrow \ I |= F$
+    \item \textbf{Unsatisfiability}: for every interpretation $I \ \Rightarrow \ I /|= F$
+\end{enumerate}
+\subsection{SAT Problem}
+The \textbf{SAT problem} is an NP-complete problem defined as follows: given a Boolean formula $\phi$, check if $\phi$ is satisfiable, meaning if a set of variables can be assigned to make the formula evaluate to true. NP is a class of problems whose solution can be verified in polynomial time on a deterministic Turing machine. Every problem in NP can be reduced to an NP-complete problem with a deterministic Turing machine in polynomial time.
+\subsection{SAT Solvers}
+A \textbf{SAT solver} is a program that decides whether a Boolean formula is satisfiable or not: if the formula is satisfiable, then it returns a model known as \textbf{satisfying assignment}, while if the formula is unsatifsiable, then it returns a proof. State-of-the-art solvers are based on the Conflict-Driven Clause Learning (CDCL) algorithm. \\
+A \textbf{literal} is either a variable or a negated variable. A \textbf{clause} is a disjunction of literals. Boolean formulas can be expressed in their \textbf{Conjunctive Normal Form}, which is a conjunction of clauses. \\
+SAT solvers accept formulas written in the \textbf{DIMACS} format:
+\begin{itemize}
+    \item First line: \texttt{p cnf variables\_number clauses\_number}
+    \item Comments: start a line with \texttt{'c'}
+    \item Lines: represent clauses and terminate with a $0$
+    \item Variables: positive (true) and negative (false) numbers
+\end{itemize}
+\subsection{Pigeon-Hole SAT Problem}
+There are $n$ pigeons and $k$ holes:
+\begin{enumerate}
+    \item A pigeon cannot stay inside two holes
+    \item Each hole can contain only one pigeon
+    \item Each pigeon must stay inside some hole
+    \item Example: “pigeon $2$ does not like hole $3$”
+\end{enumerate}
+We introduce $n\cdot k$ variables as follows:
+\begin{center}
+    $inHole(p,h)$
+\end{center}
+Let us define the problem in a SAT solver:
+\begin{enumerate}
+    \item Encode variables $a$ and $b$ that are not true at the same time:
+    \begin{center}
+        $\neg(a \land b) \equiv (\neg a\lor b)$
+    \end{center}
+\end{enumerate}
+
+\subsection{Space Complexity}
+The \textbf{space complexity} of a Turing machine $T$ is the function Space$_T$ such that Space$_T(x)$ is the number of distinct tape cells read during computation $T(x)$. If $T(x)$ does not halt, then Space$_T(x)$ is undefined. \\
+For any function $f$, we say that the space complexity of a decidable language $L$ is in $O(f)$ if there exists.
+
+
+\newpage
+
+% ------------------------------ %
+% Appendix B: More on Reductions %
+% ------------------------------ %
+\section{Appendix B: More on Reductions}
+A is undecidable \\
+A $\leq_m$ B \\
+thus B is undecidable\\
+use decider for B into the decider for A after the reduction in which the input for A is transformed into the input for B \\
+Ex 2 (similarly)
+Reduce A$_TM$ to HALT$_TM \rightarrow $A$_TM <= $HALT$_TM$ \\
+A$_TM$: on input $\langle M,w\rangle$ where M accepts w \\
+HALT$_TM$: on input $\langle M,w\rangle$ where M halts on w \\
+
+$f(\langle M,w\rangle) = \langle M',w'\langle$ \\
+f: M': on input x \\ 
+1) run M on x \\
+2) if M accepts $\rightarrow$ accept \\
+3) if M rejects $\rightarrow$ reject \\
+Output: $\langle M',w\rangle$ \\
+
+Define the formal parameter x: \\
+M' on input x: \\
+1) Run M on input x $\rightarrow$ run $M$ on w and M accepts
+2) if M accepts $\rightarrow$ accept $\Rightarrow$ condition satisfied and M' accepts w and halts
+
+
+
+M' halts on w, then M accepts w \\
+M does not accept w, then M' does not halt on w \\
+
+M' runs on w:\\
+1) M runs on w \\
+
+
+
+\end{document}
